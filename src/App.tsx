@@ -40,8 +40,6 @@ const letterColors = ['#FF6B4A', '#3D5AFE', '#FFC63F', '#20C9A6', '#A774FF', '#F
 
 const name = 'Sadhana'
 
-const marqueeWords = ['curious', 'creative', 'data & things', 'always learning', 'make it fun']
-
 const nameContainer: Variants = {
   hidden: {},
   show: { transition: { staggerChildren: 0.07, delayChildren: 0.15 } },
@@ -88,18 +86,6 @@ function Shape({ spec, reduced }: { spec: ShapeSpec; reduced: boolean }) {
   )
 }
 
-function MarqueeGroup() {
-  return (
-    <div className="marquee-group" aria-hidden="true">
-      {marqueeWords.map((word, i) => (
-        <span key={word}>
-          <i className={`spark spark--${i % letterColors.length}`} /> {word}
-        </span>
-      ))}
-    </div>
-  )
-}
-
 export default function App() {
   const reduced = useReducedMotion() ?? false
   const mouseX = useMotionValue(-200)
@@ -128,16 +114,6 @@ export default function App() {
       </div>
 
       {!reduced && <motion.div className="cursor-dot" style={{ x: cursorX, y: cursorY }} aria-hidden="true" />}
-
-      <header className="topbar">
-        <div className="topbar-left">
-          <span className="status-dot" />
-          sadhana / portfolio
-        </div>
-        <div className="topbar-right">
-          EST. 2026 <span className="topbar-separator">/</span> V.01
-        </div>
-      </header>
 
       <main className="hero">
         <motion.p
@@ -187,31 +163,7 @@ export default function App() {
             transition={{ duration: 1.2, delay: 0.85, ease: 'easeInOut' }}
           />
         </svg>
-
-        <motion.div
-          className="intro"
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 1 }}
-        >
-          <p className="tagline">
-            undergrad <span className="sep">·</span> data science <span className="sep">·</span> a little bit of everything
-          </p>
-          <p className="subnote">(still figuring out the rest — that's the fun part)</p>
-        </motion.div>
       </main>
-
-      <div className="marquee" aria-hidden="true">
-        <div className="marquee-track">
-          <MarqueeGroup />
-          <MarqueeGroup />
-        </div>
-      </div>
-
-      <footer className="footer">
-        <span>made with curiosity</span>
-        <span>more soon <span className="arrow">↗</span></span>
-      </footer>
     </div>
   )
 }
