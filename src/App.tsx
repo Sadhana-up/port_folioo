@@ -1,12 +1,4 @@
-import {
-  motion,
-  useMotionValue,
-  useReducedMotion,
-  useSpring,
-  type MotionStyle,
-  type Variants,
-} from 'framer-motion'
-import { useEffect } from 'react'
+import { motion, useReducedMotion, type MotionStyle, type Variants } from 'framer-motion'
 
 type ShapeKind = 'circle' | 'ring' | 'star' | 'pill' | 'blob' | 'cross'
 
@@ -34,6 +26,11 @@ const shapes: ShapeSpec[] = [
   { kind: 'circle', color: '#FFC63F', size: 26, top: '38%', left: '3%', duration: 6, delay: 0.95, driftX: 12, driftY: -18, spin: 0 },
   { kind: 'ring', color: '#FF6B4A', size: 42, top: '86%', left: '43%', duration: 8, delay: 0.45, driftX: 6, driftY: -24, spin: -16 },
   { kind: 'blob', color: '#20C9A6', size: 38, top: '30%', left: '94%', duration: 7, delay: 1.1, driftX: -10, driftY: 18, spin: 18 },
+  { kind: 'circle', color: '#20C9A6', size: 18, top: '48%', left: '16%', duration: 6.8, delay: 1.2, driftX: 16, driftY: 24, spin: 0 },
+  { kind: 'ring', color: '#A774FF', size: 30, top: '12%', left: '38%', duration: 9.2, delay: 0.6, driftX: 20, driftY: -20, spin: 14 },
+  { kind: 'star', color: '#FF5C9D', size: 34, top: '84%', left: '62%', duration: 7.8, delay: 0.9, driftX: -14, driftY: -18, spin: -22 },
+  { kind: 'pill', color: '#3D5AFE', size: 54, height: 22, top: '46%', left: '88%', duration: 10.5, delay: 0.25, driftX: -20, driftY: 22, spin: 10 },
+  { kind: 'cross', color: '#FFC63F', size: 28, top: '26%', left: '22%', duration: 8.2, delay: 1.05, driftX: 14, driftY: 26, spin: -18 },
 ]
 
 const letterColors = ['#FF6B4A', '#3D5AFE', '#FFC63F', '#20C9A6', '#A774FF', '#FF5C9D', '#FF6B4A']
@@ -62,46 +59,40 @@ function Shape({ spec, reduced }: { spec: ShapeSpec; reduced: boolean }) {
   if (kind === 'ring') style.borderColor = color
 
   return (
-    <motion.span
-      className={`shape shape--${kind}`}
+    <motion.div
+      className="shape-drag"
       style={style}
-      initial={{ opacity: 0, scale: 0 }}
-      animate={
-        reduced
-          ? { opacity: 1, scale: 1 }
-          : { opacity: 1, scale: 1, x: [0, driftX, 0], y: [0, driftY, 0], rotate: [0, spin, 0] }
-      }
-      transition={
-        reduced
-          ? { duration: 0.3, delay }
-          : {
-              opacity: { duration: 0.6, delay },
-              scale: { type: 'spring', stiffness: 180, damping: 14, delay },
-              x: { duration, delay, repeat: Infinity, ease: 'easeInOut' },
-              y: { duration: duration * 1.15, delay, repeat: Infinity, ease: 'easeInOut' },
-              rotate: { duration: duration * 1.7, delay, repeat: Infinity, ease: 'easeInOut' },
-            }
-      }
-    />
+      drag={!reduced}
+      dragMomentum={false}
+      dragElastic={0.15}
+      whileDrag={{ scale: 1.06 }}
+    >
+      <motion.span
+        className={`shape shape--${kind}`}
+        initial={{ opacity: 0, scale: 0 }}
+        animate={
+          reduced
+            ? { opacity: 1, scale: 1 }
+            : { opacity: 1, scale: 1, x: [0, driftX, 0], y: [0, driftY, 0], rotate: [0, spin, 0] }
+        }
+        transition={
+          reduced
+            ? { duration: 0.3, delay }
+            : {
+                opacity: { duration: 0.6, delay },
+                scale: { type: 'spring', stiffness: 180, damping: 14, delay },
+                x: { duration, delay, repeat: Infinity, ease: 'easeInOut' },
+                y: { duration: duration * 1.15, delay, repeat: Infinity, ease: 'easeInOut' },
+                rotate: { duration: duration * 1.7, delay, repeat: Infinity, ease: 'easeInOut' },
+              }
+        }
+      />
+    </motion.div>
   )
 }
 
 export default function App() {
   const reduced = useReducedMotion() ?? false
-  const mouseX = useMotionValue(-200)
-  const mouseY = useMotionValue(-200)
-  const cursorX = useSpring(mouseX, { stiffness: 140, damping: 20, mass: 0.4 })
-  const cursorY = useSpring(mouseY, { stiffness: 140, damping: 20, mass: 0.4 })
-
-  useEffect(() => {
-    if (reduced) return
-    const move = (event: MouseEvent) => {
-      mouseX.set(event.clientX)
-      mouseY.set(event.clientY)
-    }
-    window.addEventListener('mousemove', move)
-    return () => window.removeEventListener('mousemove', move)
-  }, [mouseX, mouseY, reduced])
 
   return (
     <div className={`app${reduced ? ' reduce-motion' : ''}`}>
@@ -112,8 +103,6 @@ export default function App() {
           <Shape key={i} spec={spec} reduced={reduced} />
         ))}
       </div>
-
-      {!reduced && <motion.div className="cursor-dot" style={{ x: cursorX, y: cursorY }} aria-hidden="true" />}
 
       <main className="hero">
         <motion.p

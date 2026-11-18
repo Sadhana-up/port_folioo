@@ -32,6 +32,11 @@ body {
   color: var(--ink);
 }
 
+.name ::selection {
+  background: transparent;
+  color: inherit;
+}
+
 .app {
   position: relative;
   display: flex;
@@ -60,9 +65,22 @@ body {
   pointer-events: none;
 }
 
-.shape {
+.shape-drag {
   position: absolute;
+  cursor: grab;
+  pointer-events: auto;
+  touch-action: none;
+  will-change: transform;
+}
+
+.shape-drag:active {
+  cursor: grabbing;
+}
+
+.shape {
   display: block;
+  width: 100%;
+  height: 100%;
   box-sizing: border-box;
   pointer-events: none;
   will-change: transform;
@@ -92,26 +110,6 @@ body {
 
 .shape--cross {
   clip-path: polygon(40% 0, 60% 0, 60% 40%, 100% 40%, 100% 60%, 60% 60%, 60% 100%, 40% 100%, 40% 60%, 0 60%, 0 40%, 40% 40%);
-}
-
-.cursor-dot {
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 20;
-  width: 22px;
-  height: 22px;
-  margin: -11px 0 0 -11px;
-  border: 2px solid var(--blue);
-  border-radius: 50%;
-  pointer-events: none;
-  mix-blend-mode: multiply;
-}
-
-@media (hover: none), (pointer: coarse) {
-  .cursor-dot {
-    display: none;
-  }
 }
 
 .hero {
@@ -192,6 +190,10 @@ body {
   animation: none;
 }
 
+.reduce-motion .shape-drag {
+  cursor: default;
+}
+
 @media (max-width: 700px) {
   .name {
     font-size: clamp(3.6rem, 19vw, 8rem);
@@ -201,8 +203,8 @@ body {
     width: 72vw;
   }
 
-  .shapes .shape:nth-child(6),
-  .shapes .shape:nth-child(9) {
+  .shapes .shape-drag:nth-child(6),
+  .shapes .shape-drag:nth-child(9) {
     display: none;
   }
 }
