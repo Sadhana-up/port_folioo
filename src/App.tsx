@@ -1,4 +1,5 @@
 import { motion, useReducedMotion, type MotionStyle, type Variants } from 'framer-motion'
+import { useEffect, useRef, type PointerEvent as ReactPointerEvent } from 'react'
 
 type ShapeKind = 'circle' | 'ring' | 'star' | 'pill' | 'blob' | 'cross'
 
@@ -53,6 +54,221 @@ const nameLetter: Variants = {
   },
 }
 
+type PlayBody = {
+  el: HTMLSpanElement | null
+  baseX: number
+  baseY: number
+  x: number
+  y: number
+  vx: number
+  vy: number
+  angle: number
+  spin: number
+  radius: number
+  active: boolean
+  dragging: boolean
+  grabX: number
+  grabY: number
+  lastX: number
+  lastY: number
+}
+
+const playBodies = new Set<PlayBody>()
+
+function usePlaygroundPhysics(reduced: boolean) {
+  useEffect(() => {
+    if (reduced) return
+    let frame = 0
+    let last = performance.now()
+
+    const step = (now: number) => {
+      const dt = Math.min((now - last) / 16.67, 2)
+      last = now
+      const width = window.innerWidth
+      const height = window.innerHeight
+
+      playBodies.forEach((body) => {
+        if (!body.active || body.dragging || !body.el) return
+        body.vy += 0.6 * dt
+        body.vx *= Math.pow(0.995, dt)
+        body.vy *= Math.pow(0.995, dt)
+        body.x += body.vx * dt
+        body.y += body.vy * dt
+        body.angle += body.spin * dt
+        body.spin *= Math.pow(0.99, dt)
+
+        if (body.x - body.radius < 0) {
+          body.x = body.radius
+          body.vx = Math.abs(body.vx) * 0.62
+        } else if (body.x + body.radius > width) {
+          body.x = width - body.radius
+          body.vx = -Math.abs(body.vx) * 0.62
+        }
+        if (body.y - body.radius < 0) {
+          body.y = body.radius
+          body.vy = Math.abs(body.vy) * 0.62
+        } else if (body.y + body.radius > height) {
+          body.y = height - body.radius
+          body.vy = -Math.abs(body.vy) * 0.62
+          body.vx *= 0.98
+        }
+      })
+
+      const active = Array.from(playBodies).filter((body) => body.active && body.el)
+      for (let i = 0; i < active.length; i++) {
+        for (let j = i + 1; j < active.length; j++) {
+          const a = active[i]
+          const b = active[j]
+          const dx = b.x - a.x
+          const dy = b.y - a.y
+          const distance = Math.hypot(dx, dy)
+          const minimum = a.radius + b.radius
+          if (distance === 0 || distance >= minimum) continue
+          const nx = dx / distance
+          const ny = dy / distance
+          const overlap = (minimum - distance) / 2
+          a.x -= nx * overlap
+          a.y -= ny * overlap
+          b.x += nx * overlap
+          b.y += ny * overlap
+          const normalVelocity = (b.vx - a.vx) * nx + (b.vy - a.vy) * ny
+          if (normalVelocity >= 0) continue
+          const impulse = -(1 + 0.55) * normalVelocity / 2
+          a.vx -= impulse * nx
+          a.vy -= impulse * ny
+          b.vx += impulse * nx
+          b.vy += impulse * ny
+          a.spin -= impulse * 0.004
+          b.spin += impulse * 0.004
+        }
+      }
+
+      playBodies.forEach((body) => {
+        if (!body.el) return
+        body.el.style.transform = `translate3d(${(body.x - body.baseX).toFixed(2)}px, ${(body.y - body.baseY).toFixed(2)}px, 0) rotate(${body.angle.toFixed(3)}rad)`
+      })
+
+      frame = requestAnimationFrame(step)
+    }
+
+    frame = requestAnimationFrame(step)
+    return () => cancelAnimationFrame(frame)
+  }, [reduced])
+}
+
+function PlayfulLetter({ char, index, reduced }: { char: string; index: number; reduced: boolean }) {
+  const ref = useRef<HTMLSpanElement>(null)
+  const bodyRef = useRef<PlayBody>({
+    el: null,
+    baseX: 0,
+    baseY: 0,
+    x: 0,
+    y: 0,
+    vx: 0,
+    vy: 0,
+    angle: 0,
+    spin: 0,
+    radius: 40,
+    active: false,
+    dragging: false,
+    grabX: 0,
+    grabY: 0,
+    lastX: 0,
+    lastY: 0,
+  })
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const measure = () => {
+      const rect = el.getBoundingClientRect()
+      const body = bodyRef.current
+      if (!body.active) {
+        body.baseX = rect.left + rect.width / 2
+        body.baseY = rect.top + rect.height / 2
+        body.x = body.baseX
+        body.y = body.baseY
+      }
+      body.radius = Math.max(18, Math.min(rect.width, rect.height) * 0.38)
+    }
+    measure()
+    bodyRef.current.el = el
+    playBodies.add(bodyRef.current)
+    window.addEventListener('resize', measure)
+    return () => {
+      window.removeEventListener('resize', measure)
+      playBodies.delete(bodyRef.current)
+      bodyRef.current.el = null
+    }
+  }, [])
+
+  const onPointerDown = (event: ReactPointerEvent<HTMLSpanElement>) => {
+    if (reduced) return
+    event.preventDefault()
+    const body = bodyRef.current
+    body.active = true
+    body.dragging = true
+    body.grabX = body.x - event.clientX
+    body.grabY = body.y - event.clientY
+    body.lastX = event.clientX
+    body.lastY = event.clientY
+    body.vx = 0
+    body.vy = 0
+    body.spin = 0
+    body.el?.setPointerCapture(event.pointerId)
+    if (body.el) body.el.style.zIndex = '10'
+  }
+
+  const onPointerMove = (event: ReactPointerEvent<HTMLSpanElement>) => {
+    const body = bodyRef.current
+    if (!body.dragging) return
+    body.x = event.clientX + body.grabX
+    body.y = event.clientY + body.grabY
+    body.vx = (event.clientX - body.lastX) * 0.85
+    body.vy = (event.clientY - body.lastY) * 0.85
+    body.spin = body.vx * 0.008
+    body.lastX = event.clientX
+    body.lastY = event.clientY
+  }
+
+  const onPointerUp = (event: ReactPointerEvent<HTMLSpanElement>) => {
+    const body = bodyRef.current
+    if (!body.dragging) return
+    body.dragging = false
+    if (body.el?.hasPointerCapture(event.pointerId)) body.el.releasePointerCapture(event.pointerId)
+    if (body.el) body.el.style.zIndex = ''
+  }
+
+  return (
+    <span
+      className="letter-drag"
+      ref={ref}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerUp}
+    >
+      <motion.span
+        className="letter-float"
+        animate={reduced ? undefined : { x: [0, 2, -2, 0], y: [0, -6, 2, 0], rotate: [0, -3, 3, 0] }}
+        transition={{ duration: 3.4 + index * 0.18, repeat: Infinity, delay: index * 0.12, ease: 'easeInOut' }}
+      >
+        <motion.span
+          className="letter"
+          variants={nameLetter}
+          style={{ '--letter-color': letterColors[index % letterColors.length] } as MotionStyle}
+          whileHover={reduced ? undefined : { y: -18, rotate: index % 2 === 0 ? -9 : 9, scale: 1.12 }}
+          whileTap={{ scale: 0.92 }}
+        >
+          <span className="letter-inner" style={{ animationDelay: `${index * 0.13}s` }}>
+            {char}
+          </span>
+        </motion.span>
+      </motion.span>
+    </span>
+  )
+}
+
 function Shape({ spec, reduced }: { spec: ShapeSpec; reduced: boolean }) {
   const { kind, color, size, height, top, left, duration, delay, driftX, driftY, spin } = spec
   const style: MotionStyle = { top, left, width: size, height: height ?? size }
@@ -93,6 +309,7 @@ function Shape({ spec, reduced }: { spec: ShapeSpec; reduced: boolean }) {
 
 export default function App() {
   const reduced = useReducedMotion() ?? false
+  usePlaygroundPhysics(reduced)
 
   return (
     <div className={`app${reduced ? ' reduce-motion' : ''}`}>
@@ -116,18 +333,7 @@ export default function App() {
 
         <motion.h1 className="name" variants={nameContainer} initial="hidden" animate="show" aria-label={name}>
           {name.split('').map((char, i) => (
-            <motion.span
-              className="letter"
-              key={`${char}-${i}`}
-              variants={nameLetter}
-              style={{ '--letter-color': letterColors[i % letterColors.length] } as MotionStyle}
-              whileHover={reduced ? undefined : { y: -18, rotate: i % 2 === 0 ? -9 : 9, scale: 1.12 }}
-              whileTap={{ scale: 0.92 }}
-            >
-              <span className="letter-inner" style={{ animationDelay: `${i * 0.13}s` }}>
-                {char}
-              </span>
-            </motion.span>
+            <PlayfulLetter key={`${char}-${i}`} char={char} index={i} reduced={reduced} />
           ))}
         </motion.h1>
 

@@ -142,6 +142,22 @@ body {
   background: var(--coral);
 }
 
+.letter-drag,
+.letter-float {
+  display: inline-block;
+  will-change: transform;
+}
+
+.letter-drag {
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.letter-drag:active {
+  cursor: grabbing;
+}
+
 .name {
   display: flex;
   justify-content: center;
@@ -190,7 +206,8 @@ body {
   animation: none;
 }
 
-.reduce-motion .shape-drag {
+.reduce-motion .shape-drag,
+.reduce-motion .letter-drag {
   cursor: default;
 }
 
