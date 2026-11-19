@@ -54,6 +54,63 @@ const nameLetter: Variants = {
   },
 }
 
+const bio =
+  "I’m a data science student who likes poking at messy data until it spills something interesting. I’m into AI, half-baked experiments, and those little ‘wait, that’s actually cool’ moments. Mostly just learning by building things and seeing where my curiosity takes me."
+
+const projects = [
+  {
+    name: 'Lucent',
+    blurb:
+      'An AI skincare advisor that helps you read your skin and build a routine that actually fits—no trendy nonsense.',
+    role: 'Developer & AI integrator',
+    tech: ['Python', 'Google ADK', 'Node.js', 'DB management'],
+    links: [
+      { label: 'Live site', href: 'https://www.lucentnepal.com' },
+      { label: 'GitHub', href: 'https://github.com/Sadhana-up/Lucent', alt: true },
+    ],
+    tilt: '-1.2deg',
+    accent: '#FF6B4A',
+  },
+  {
+    name: 'CuraNova',
+    blurb:
+      'A multimodal medical AI assistant that can work with things like X-rays, prescriptions, and reports—pairing medical reasoning with a verification step.',
+    tech: ['Python', 'FastAPI', 'Bun', 'MedGemma', 'Google ADK', 'Gemini', 'MCP/A2A'],
+    links: [{ label: 'GitHub', href: 'https://github.com/Sadhana-up/CuraNova', alt: true }],
+    tilt: '1deg',
+    accent: '#3D5AFE',
+  },
+]
+
+const skillGroups = [
+  { title: 'Languages', items: ['Python (proficient)', 'R', 'Java'], color: '#FF6B4A' },
+  {
+    title: 'ML / AI Frameworks',
+    items: ['TensorFlow', 'scikit-learn', 'Keras', 'Hugging Face Transformers'],
+    color: '#3D5AFE',
+  },
+  {
+    title: 'Data & Analytics',
+    items: ['NumPy', 'Pandas', 'Matplotlib', 'Seaborn', 'Data Visualisation'],
+    color: '#20C9A6',
+  },
+  {
+    title: 'LLM & Agent Tools',
+    items: ['Google Agent Development Kit (ADK)', 'Google Colab'],
+    color: '#A774FF',
+  },
+  {
+    title: 'Web / APIs',
+    items: ['REST API consumption', 'Flask (basic)', 'Git & GitHub'],
+    color: '#FFC63F',
+  },
+  {
+    title: 'Tools & Platforms',
+    items: ['VS Code', 'Jupyter Notebooks', 'Google Colab', 'Linux CLI'],
+    color: '#FF5C9D',
+  },
+]
+
 type PlayBody = {
   el: HTMLSpanElement | null
   baseX: number
@@ -313,52 +370,204 @@ export default function App() {
 
   return (
     <div className={`app${reduced ? ' reduce-motion' : ''}`}>
-      <div className="grid-overlay" aria-hidden="true" />
+      <section className="hero-section" id="top">
+        <div className="grid-overlay" aria-hidden="true" />
 
-      <div className="shapes" aria-hidden="true">
-        {shapes.map((spec, i) => (
-          <Shape key={i} spec={spec} reduced={reduced} />
-        ))}
-      </div>
-
-      <main className="hero">
-        <motion.p
-          className="eyebrow"
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-        >
-          <span className="eyebrow-dot" /> hello, i'm
-        </motion.p>
-
-        <motion.h1 className="name" variants={nameContainer} initial="hidden" animate="show" aria-label={name}>
-          {name.split('').map((char, i) => (
-            <PlayfulLetter key={`${char}-${i}`} char={char} index={i} reduced={reduced} />
+        <div className="shapes" aria-hidden="true">
+          {shapes.map((spec, i) => (
+            <Shape key={i} spec={spec} reduced={reduced} />
           ))}
-        </motion.h1>
+        </div>
 
-        <svg className="squiggle" viewBox="0 0 600 28" preserveAspectRatio="none" aria-hidden="true">
-          <defs>
-            <linearGradient id="squiggle-gradient" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stopColor="#FF6B4A" />
-              <stop offset="30%" stopColor="#FFC63F" />
-              <stop offset="60%" stopColor="#20C9A6" />
-              <stop offset="100%" stopColor="#3D5AFE" />
-            </linearGradient>
-          </defs>
-          <motion.path
-            d="M4 17 C 70 3, 140 25, 210 13 S 350 3, 420 15 S 540 6, 596 14"
-            fill="none"
-            stroke="url(#squiggle-gradient)"
-            strokeWidth="7"
-            strokeLinecap="round"
-            strokeDasharray="640"
-            initial={{ strokeDashoffset: 640, opacity: 0 }}
-            animate={{ strokeDashoffset: 0, opacity: 1 }}
-            transition={{ duration: 1.2, delay: 0.85, ease: 'easeInOut' }}
-          />
-        </svg>
-      </main>
+        <main className="hero">
+          <motion.p
+            className="eyebrow"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+          >
+            <span className="eyebrow-dot" /> hello, i&apos;m
+          </motion.p>
+
+          <motion.h1 className="name" variants={nameContainer} initial="hidden" animate="show" aria-label={name}>
+            {name.split('').map((char, i) => (
+              <PlayfulLetter key={`${char}-${i}`} char={char} index={i} reduced={reduced} />
+            ))}
+          </motion.h1>
+
+          <svg className="squiggle" viewBox="0 0 600 28" preserveAspectRatio="none" aria-hidden="true">
+            <defs>
+              <linearGradient id="squiggle-gradient" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stopColor="#FF6B4A" />
+                <stop offset="30%" stopColor="#FFC63F" />
+                <stop offset="60%" stopColor="#20C9A6" />
+                <stop offset="100%" stopColor="#3D5AFE" />
+              </linearGradient>
+            </defs>
+            <motion.path
+              d="M4 17 C 70 3, 140 25, 210 13 S 350 3, 420 15 S 540 6, 596 14"
+              fill="none"
+              stroke="url(#squiggle-gradient)"
+              strokeWidth="7"
+              strokeLinecap="round"
+              strokeDasharray="640"
+              initial={{ strokeDashoffset: 640, opacity: 0 }}
+              animate={{ strokeDashoffset: 0, opacity: 1 }}
+              transition={{ duration: 1.2, delay: 0.85, ease: 'easeInOut' }}
+            />
+          </svg>
+        </main>
+
+        <a className="scroll-hint" href="#about">
+          scroll for the good stuff ↓
+        </a>
+      </section>
+
+      <section className="section" id="about">
+        <div className="section-inner">
+          <div className="section-head">
+            <p className="section-kicker">a little context</p>
+            <h2 className="section-title">
+              About <span className="accent-coral">me</span>
+            </h2>
+          </div>
+          <motion.div
+            className="about-card"
+            initial={reduced ? false : { opacity: 0, y: 24, rotate: -2 }}
+            whileInView={reduced ? undefined : { opacity: 1, y: 0, rotate: -0.6 }}
+            viewport={{ once: true, amount: 0.4 }}
+            transition={{ duration: 0.5 }}
+          >
+            <p>{bio}</p>
+          </motion.div>
+        </div>
+      </section>
+
+      <section className="section" id="projects">
+        <div className="section-inner">
+          <div className="section-head">
+            <p className="section-kicker">things i&apos;ve built</p>
+            <h2 className="section-title">
+              Selected <span className="accent-blue">projects</span>
+            </h2>
+          </div>
+          <div className="projects-grid">
+            {projects.map((project, i) => (
+              <motion.article
+                key={project.name}
+                className="project-card"
+                style={{ transform: `rotate(${project.tilt})`, borderTop: `6px solid ${project.accent}` }}
+                initial={reduced ? false : { opacity: 0, y: 28 }}
+                whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.25 }}
+                transition={{ duration: 0.45, delay: i * 0.08 }}
+              >
+                <h3>{project.name}</h3>
+                <p className="project-blurb">{project.blurb}</p>
+                {project.role ? <p className="project-meta">{project.role}</p> : null}
+                <ul className="tag-list" aria-label={`${project.name} tech`}>
+                  {project.tech.map((item) => (
+                    <li className="tag" key={item}>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+                <div className="project-links">
+                  {project.links.map((link) => (
+                    <a
+                      key={link.href}
+                      className={`btn-link${link.alt ? ' alt' : ''}`}
+                      href={link.href}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      {link.label} ↗
+                    </a>
+                  ))}
+                </div>
+              </motion.article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="section" id="skills">
+        <div className="section-inner">
+          <div className="section-head">
+            <p className="section-kicker">tools in the backpack</p>
+            <h2 className="section-title">
+              Skills &amp; <span className="accent-mint">tools</span>
+            </h2>
+          </div>
+          <div className="skills-grid">
+            {skillGroups.map((group, i) => (
+              <motion.div
+                key={group.title}
+                className="skill-card"
+                style={{ borderTop: `5px solid ${group.color}` }}
+                initial={reduced ? false : { opacity: 0, y: 20 }}
+                whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.3 }}
+                transition={{ duration: 0.4, delay: i * 0.04 }}
+              >
+                <h3>{group.title}</h3>
+                <ul className="skill-items">
+                  {group.items.map((item) => (
+                    <li className="skill-item" key={item}>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="section" id="contact">
+        <div className="section-inner">
+          <div className="section-head">
+            <p className="section-kicker">say hi</p>
+            <h2 className="section-title">
+              Let&apos;s <span className="accent-lilac">talk</span>
+            </h2>
+          </div>
+          <motion.div
+            className="contact-panel"
+            initial={reduced ? false : { opacity: 0, y: 24 }}
+            whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.35 }}
+            transition={{ duration: 0.45 }}
+          >
+            <p>
+              Got a question, a collab idea, or just something cool to share? Drop me a note—my inbox is open.
+            </p>
+            <div className="contact-actions">
+              <a className="contact-btn" href="mailto:upretysadhana@gmail.com?subject=Hello%20Sadhana">
+                Send a query
+              </a>
+              <a
+                className="contact-btn secondary"
+                href="https://github.com/Sadhana-up"
+                target="_blank"
+                rel="noreferrer"
+              >
+                GitHub
+              </a>
+              <a
+                className="contact-btn secondary"
+                href="https://www.linkedin.com/in/sadhana-uprety/"
+                target="_blank"
+                rel="noreferrer"
+              >
+                LinkedIn
+              </a>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      <footer className="site-footer">made with curiosity, chaos, and a lot of data · Sadhana</footer>
     </div>
   )
 }
