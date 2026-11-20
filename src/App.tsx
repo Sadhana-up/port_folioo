@@ -1,5 +1,7 @@
-import { motion, useReducedMotion, type MotionStyle, type Variants } from 'framer-motion'
-import { useEffect, useRef, type PointerEvent as ReactPointerEvent } from 'react'
+import { AnimatePresence, motion, useReducedMotion, type MotionStyle, type Variants } from 'framer-motion'
+import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
+
+type PanelName = 'about' | 'contact'
 
 type ShapeKind = 'circle' | 'ring' | 'star' | 'pill' | 'blob' | 'cross'
 
@@ -56,6 +58,38 @@ const nameLetter: Variants = {
 
 const bio =
   "I’m a data science student who likes poking at messy data until it spills something interesting. I’m into AI, half-baked experiments, and those little ‘wait, that’s actually cool’ moments. Mostly just learning by building things and seeing where my curiosity takes me."
+
+const aboutStory = [
+  "I’m Sadhana, a data science student who likes finding the strange, lovely patterns hiding inside messy data. Most of my time goes into learning by building—small experiments, half-baked ideas, and the occasional happy accident.",
+  "I care about making technology feel a little more human: things that are useful, understandable, and maybe even a bit playful. When I’m not elbow-deep in a notebook, I’m usually chasing a new curiosity or adding to my collection of unfinished side quests.",
+]
+
+const aboutDetails = [
+  {
+    label: 'Background',
+    value: 'Data science student, exploratory coder, and professional over-thinker of tiny details.',
+  },
+  {
+    label: 'Interests',
+    value: 'AI agents, data visualisation, interactive things, and the weird magic of niche internet communities.',
+  },
+  {
+    label: 'Skills',
+    value: 'Python, pandas, scikit-learn, TensorFlow, FastAPI, and a growing love of agent tooling.',
+  },
+  {
+    label: 'Currently into',
+    value: 'Multimodal models, playful interfaces, and learning in public.',
+  },
+]
+
+const contactLinks = [
+  { label: 'Email', value: 'upretysadhana@gmail.com', href: 'mailto:upretysadhana@gmail.com?subject=Hello%20Sadhana' },
+  { label: 'GitHub', value: '/Sadhana-up', href: 'https://github.com/Sadhana-up' },
+  { label: 'LinkedIn', value: '/in/sadhana-uprety/', href: 'https://www.linkedin.com/in/sadhana-uprety/' },
+]
+
+const panelEase = [0.22, 1, 0.36, 1] as const
 
 const projects = [
   {
@@ -131,6 +165,89 @@ type PlayBody = {
 }
 
 const playBodies = new Set<PlayBody>()
+
+let homeFrame = 0
+
+function resetPlayBodies(reduced: boolean) {
+  cancelAnimationFrame(homeFrame)
+
+  const returns: {
+    body: PlayBody
+    el: HTMLSpanElement
+    baseX: number
+    baseY: number
+    dx: number
+    dy: number
+    angle: number
+  }[] = []
+
+  playBodies.forEach((body) => {
+    const el = body.el
+    if (!el) return
+
+    const currentTransform = el.style.transform
+    el.style.transform = ''
+    const rect = el.getBoundingClientRect()
+    el.style.transform = currentTransform
+
+    const baseX = rect.left + rect.width / 2
+    const baseY = rect.top + rect.height / 2
+    body.baseX = baseX
+    body.baseY = baseY
+    body.vx = 0
+    body.vy = 0
+    body.spin = 0
+    body.active = false
+    body.dragging = false
+
+    returns.push({
+      body,
+      el,
+      baseX,
+      baseY,
+      dx: body.x - baseX,
+      dy: body.y - baseY,
+      angle: body.angle,
+    })
+  })
+
+  const finish = () => {
+    returns.forEach(({ body, el, baseX, baseY }) => {
+      el.style.transform = ''
+      body.x = baseX
+      body.y = baseY
+      body.angle = 0
+    })
+  }
+
+  if (reduced) {
+    finish()
+    return
+  }
+
+  const started = performance.now()
+  const duration = 620
+
+  const step = (now: number) => {
+    const progress = Math.min((now - started) / duration, 1)
+    const eased = 1 - Math.pow(1 - progress, 3)
+
+    returns.forEach(({ el, dx, dy, angle }) => {
+      const x = dx * (1 - eased)
+      const y = dy * (1 - eased)
+      const rotation = angle * (1 - eased)
+      el.style.transform = `translate3d(${x.toFixed(2)}px, ${y.toFixed(2)}px, 0) rotate(${rotation.toFixed(3)}rad)`
+    })
+
+    if (progress < 1) {
+      homeFrame = requestAnimationFrame(step)
+    } else {
+      finish()
+    }
+  }
+
+  homeFrame = requestAnimationFrame(step)
+}
 
 function usePlaygroundPhysics(reduced: boolean) {
   useEffect(() => {
@@ -262,6 +379,7 @@ function PlayfulLetter({ char, index, reduced }: { char: string; index: number; 
   const onPointerDown = (event: ReactPointerEvent<HTMLSpanElement>) => {
     if (reduced) return
     event.preventDefault()
+    cancelAnimationFrame(homeFrame)
     const body = bodyRef.current
     body.active = true
     body.dragging = true
@@ -364,12 +482,153 @@ function Shape({ spec, reduced }: { spec: ShapeSpec; reduced: boolean }) {
   )
 }
 
-export default function App() {
-  const reduced = useReducedMotion() ?? false
-  usePlaygroundPhysics(reduced)
+function ArrowIcon() {
+  return (
+    <svg className="panel-arrow" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M7 17 17 7M17 7H8M17 7v9" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+function SlidePanel({
+  panel,
+  open,
+  reduced,
+  onClose,
+  children,
+}: {
+  panel: PanelName
+  open: boolean
+  reduced: boolean
+  onClose: () => void
+  children: React.ReactNode
+}) {
+  const closeRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    const previousFocus = document.activeElement as HTMLElement | null
+    closeRef.current?.focus()
+    return () => previousFocus?.focus()
+  }, [open])
 
   return (
-    <div className={`app${reduced ? ' reduce-motion' : ''}`}>
+    <AnimatePresence>
+      {open ? (
+        <>
+          <motion.div
+            className="panel-backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: reduced ? 0.01 : 0.35, ease: panelEase }}
+            onClick={onClose}
+            aria-hidden="true"
+          />
+          <motion.aside
+            className={`slide-panel slide-panel--${panel}`}
+            role="dialog"
+            aria-modal="true"
+            aria-label={panel === 'about' ? 'About Sadhana' : 'Contact Sadhana'}
+            initial={
+              reduced
+                ? { opacity: 0 }
+                : { x: panel === 'about' ? '-100%' : '100%', opacity: 0 }
+            }
+            animate={{ x: 0, opacity: 1 }}
+            exit={
+              reduced
+                ? { opacity: 0 }
+                : { x: panel === 'about' ? '-100%' : '100%', opacity: 0 }
+            }
+            transition={{ duration: reduced ? 0.01 : 0.62, ease: panelEase }}
+          >
+            <button className="panel-close" type="button" onClick={onClose} aria-label="Close panel" ref={closeRef}>
+              <span className="panel-close-mark" aria-hidden="true" />
+              <span className="panel-close-label">close</span>
+            </button>
+            <motion.div
+              className="panel-content"
+              initial={reduced ? false : { opacity: 0, y: 18 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: reduced ? 0.01 : 0.45, delay: reduced ? 0 : 0.18, ease: panelEase }}
+            >
+              {children}
+            </motion.div>
+          </motion.aside>
+        </>
+      ) : null}
+    </AnimatePresence>
+  )
+}
+
+export default function App() {
+  const reduced = useReducedMotion() ?? false
+  const [activePanel, setActivePanel] = useState<PanelName | null>(null)
+  usePlaygroundPhysics(reduced)
+
+  useEffect(() => {
+    if (!activePanel) return
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setActivePanel(null)
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => {
+      document.body.style.overflow = previousOverflow
+      window.removeEventListener('keydown', onKeyDown)
+    }
+  }, [activePanel])
+
+  const openPanel = (panel: PanelName) => setActivePanel(panel)
+  const closePanel = () => setActivePanel(null)
+  const putLettersBack = () => resetPlayBodies(reduced)
+
+  const scrollToExplore = () => {
+    document.body.style.overflow = ''
+    closePanel()
+    requestAnimationFrame(() => {
+      document.getElementById('explore')?.scrollIntoView({
+        behavior: reduced ? 'auto' : 'smooth',
+        block: 'start',
+      })
+    })
+  }
+
+  return (
+    <div className={`app${reduced ? ' reduce-motion' : ''}${activePanel ? ' panel-open' : ''}`}>
+      <nav className="site-nav" aria-label="Main navigation">
+        <a className="nav-brand" href="#top" onClick={closePanel}>
+          <span className="nav-brand-name">Sadhana Uprety</span>
+        </a>
+        <div className="nav-links">
+          <motion.button
+            className={`nav-link${activePanel === 'about' ? ' is-active' : ''}`}
+            type="button"
+            onClick={() => openPanel('about')}
+            aria-expanded={activePanel === 'about'}
+            whileHover={reduced ? undefined : { y: -2 }}
+            whileTap={{ scale: 0.96 }}
+          >
+            About
+          </motion.button>
+          <motion.button
+            className={`nav-link${activePanel === 'contact' ? ' is-active' : ''}`}
+            type="button"
+            onClick={() => openPanel('contact')}
+            aria-expanded={activePanel === 'contact'}
+            whileHover={reduced ? undefined : { y: -2 }}
+            whileTap={{ scale: 0.96 }}
+          >
+            Contact
+          </motion.button>
+          <motion.button className="nav-link nav-link--explore" type="button" onClick={scrollToExplore} whileHover={reduced ? undefined : { y: -2 }} whileTap={{ scale: 0.96 }}>
+            More <span aria-hidden="true">↓</span>
+          </motion.button>
+        </div>
+      </nav>
+
       <section className="hero-section" id="top">
         <div className="grid-overlay" aria-hidden="true" />
 
@@ -416,30 +675,95 @@ export default function App() {
               transition={{ duration: 1.2, delay: 0.85, ease: 'easeInOut' }}
             />
           </svg>
+
+          <motion.button
+            className="hero-reset"
+            type="button"
+            onClick={putLettersBack}
+            initial={reduced ? false : { opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: reduced ? 0.01 : 0.5, delay: reduced ? 0 : 1.05, ease: panelEase }}
+            whileHover={reduced ? undefined : { y: -2 }}
+          >
+            put letters back <span aria-hidden="true">↺</span>
+          </motion.button>
         </main>
 
-        <a className="scroll-hint" href="#about">
+        <button className="scroll-hint" type="button" onClick={scrollToExplore}>
           scroll for the good stuff ↓
-        </a>
+        </button>
       </section>
 
-      <section className="section" id="about">
+      <SlidePanel panel="about" open={activePanel === 'about'} reduced={reduced} onClose={closePanel}>
+        <p className="panel-kicker">a little context</p>
+        <h2 className="panel-title">
+          About <span className="accent-coral">me</span>
+        </h2>
+        <div className="panel-story">
+          {aboutStory.map((paragraph) => (
+            <p key={paragraph}>{paragraph}</p>
+          ))}
+        </div>
+        <div className="panel-rule" aria-hidden="true" />
+        <dl className="about-details">
+          {aboutDetails.map((detail) => (
+            <div className="about-detail" key={detail.label}>
+              <dt>{detail.label}</dt>
+              <dd>{detail.value}</dd>
+            </div>
+          ))}
+        </dl>
+        <p className="panel-note">{bio}</p>
+        <button className="panel-next" type="button" onClick={scrollToExplore}>
+          explore the rest <span aria-hidden="true">↓</span>
+        </button>
+      </SlidePanel>
+
+      <SlidePanel panel="contact" open={activePanel === 'contact'} reduced={reduced} onClose={closePanel}>
+        <p className="panel-kicker">say hi</p>
+        <h2 className="panel-title">
+          Let&apos;s <span className="accent-lilac">talk</span>
+        </h2>
+        <p className="panel-intro">
+          Got a question, a collab idea, or just something cool to share? My inbox is always open.
+        </p>
+        <div className="contact-list">
+          {contactLinks.map((link) => (
+            <a
+              className="contact-row"
+              key={link.label}
+              href={link.href}
+              {...(link.href.startsWith('http') ? { target: '_blank', rel: 'noreferrer' } : {})}
+            >
+              <span className="contact-label">{link.label}</span>
+              <span className="contact-value">{link.value}</span>
+              <ArrowIcon />
+            </a>
+          ))}
+        </div>
+        <p className="panel-note">
+          I&apos;m especially happy to chat about data, AI, creative experiments, or whatever you&apos;re building.
+        </p>
+      </SlidePanel>
+
+      <div className="explore" id="explore">
+      <section className="section explore-intro">
         <div className="section-inner">
           <div className="section-head">
-            <p className="section-kicker">a little context</p>
+            <p className="section-kicker">the rest of the story</p>
             <h2 className="section-title">
-              About <span className="accent-coral">me</span>
+              Keep <span className="accent-blue">exploring</span>
             </h2>
           </div>
-          <motion.div
-            className="about-card"
-            initial={reduced ? false : { opacity: 0, y: 24, rotate: -2 }}
-            whileInView={reduced ? undefined : { opacity: 1, y: 0, rotate: -0.6 }}
-            viewport={{ once: true, amount: 0.4 }}
-            transition={{ duration: 0.5 }}
-          >
-            <p>{bio}</p>
-          </motion.div>
+          <p className="explore-lede">
+            Education, experience, projects, skills, and the little things that make me me—all in one place.
+          </p>
+          <div className="explore-index" aria-hidden="true">
+            <span>01 — experience</span>
+            <span>02 — projects</span>
+            <span>03 — skills</span>
+            <span>04 — elsewhere</span>
+          </div>
         </div>
       </section>
 
@@ -524,50 +848,76 @@ export default function App() {
         </div>
       </section>
 
-      <section className="section" id="contact">
+      <section className="section" id="background">
         <div className="section-inner">
           <div className="section-head">
-            <p className="section-kicker">say hi</p>
+            <p className="section-kicker">where i&apos;ve been</p>
             <h2 className="section-title">
-              Let&apos;s <span className="accent-lilac">talk</span>
+              Background &amp; <span className="accent-coral">elsewhere</span>
             </h2>
           </div>
-          <motion.div
-            className="contact-panel"
-            initial={reduced ? false : { opacity: 0, y: 24 }}
-            whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.35 }}
-            transition={{ duration: 0.45 }}
-          >
-            <p>
-              Got a question, a collab idea, or just something cool to share? Drop me a note—my inbox is open.
-            </p>
-            <div className="contact-actions">
-              <a className="contact-btn" href="mailto:upretysadhana@gmail.com?subject=Hello%20Sadhana">
-                Send a query
-              </a>
-              <a
-                className="contact-btn secondary"
-                href="https://github.com/Sadhana-up"
-                target="_blank"
-                rel="noreferrer"
-              >
-                GitHub
-              </a>
-              <a
-                className="contact-btn secondary"
-                href="https://www.linkedin.com/in/sadhana-uprety/"
-                target="_blank"
-                rel="noreferrer"
-              >
-                LinkedIn
-              </a>
-            </div>
-          </motion.div>
+          <div className="background-grid">
+            <motion.div
+              className="background-card"
+              initial={reduced ? false : { opacity: 0, y: 24 }}
+              whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{ duration: 0.45 }}
+            >
+              <p className="background-label">Education</p>
+              <h3>Built on curiosity</h3>
+              <p className="background-text">
+                Data science student, constantly learning in public and turning coursework into things I can actually play with.
+              </p>
+              <div className="background-tags">
+                <span>Data Science</span>
+                <span>AI / ML</span>
+                <span>Analytics</span>
+              </div>
+            </motion.div>
+            <motion.div
+              className="background-card"
+              initial={reduced ? false : { opacity: 0, y: 24 }}
+              whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{ duration: 0.45, delay: 0.08 }}
+            >
+              <p className="background-label">Experience</p>
+              <h3>Learning by building</h3>
+              <p className="background-text">
+                From AI skincare advisors to multimodal medical tools—I like projects where I can own an idea end to end.
+              </p>
+              <div className="background-tags">
+                <span>Python</span>
+                <span>FastAPI</span>
+                <span>Google ADK</span>
+              </div>
+            </motion.div>
+            <motion.div
+              className="background-card background-card--wide"
+              initial={reduced ? false : { opacity: 0, y: 24 }}
+              whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{ duration: 0.45, delay: 0.14 }}
+            >
+              <p className="background-label">Achievements &amp; interests</p>
+              <h3>The bits between the big things</h3>
+              <p className="background-text">
+                Certifications, small wins, and whatever I&apos;m currently obsessing over live here. This is a living section—more soon.
+              </p>
+              <button className="btn-link" type="button" onClick={() => openPanel('contact')}>
+                Tell me about yours ↗
+              </button>
+            </motion.div>
+          </div>
         </div>
       </section>
+      </div>
 
-      <footer className="site-footer">made with curiosity, chaos, and a lot of data · Sadhana</footer>
+      <footer className="site-footer">
+        <button type="button" onClick={() => openPanel('contact')}>say hi ↗</button>
+        <span>made with curiosity, chaos, and a lot of data · Sadhana</span>
+      </footer>
     </div>
   )
 }
