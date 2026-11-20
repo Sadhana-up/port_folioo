@@ -145,6 +145,66 @@ const skillGroups = [
   },
 ]
 
+const journey = [
+  {
+    period: 'Now',
+    kind: 'Education',
+    title: 'Data science student',
+    place: 'Add your degree, school, and year here',
+    detail: 'Replace this with what you are studying, the questions you are chasing, and the coursework that changed how you think.',
+    color: '#FF6B4A',
+  },
+  {
+    period: '2025',
+    kind: 'Experience',
+    title: 'Building with AI',
+    place: 'Independent projects',
+    detail: 'From Lucent to CuraNova, I have been turning ideas into working prototypes with Python, FastAPI, and Google ADK.',
+    color: '#3D5AFE',
+  },
+  {
+    period: 'Before',
+    kind: 'Foundation',
+    title: 'Learning in public',
+    place: 'Curiosity-driven',
+    detail: 'Notebooks, tiny experiments, and a growing habit of sharing the messy middle of learning something new.',
+    color: '#20C9A6',
+  },
+]
+
+const extras = [
+  {
+    label: 'Certifications',
+    title: 'Proof of the rabbit holes',
+    items: ['Add a certification or course', 'Add another course or workshop', 'Add a self-directed milestone'],
+    color: '#FFC63F',
+  },
+  {
+    label: 'Achievements',
+    title: 'Small wins, real momentum',
+    items: ['Add a competition, hackathon, or award', 'Add a project milestone', 'Add something you are quietly proud of'],
+    color: '#A774FF',
+  },
+]
+
+const interests = [
+  {
+    title: 'Data with feelings',
+    text: 'Visualisations and stories that make numbers feel a little more human.',
+    color: '#FF6B4A',
+  },
+  {
+    title: 'Agent experiments',
+    text: 'Small tools that reason, verify, and occasionally surprise me.',
+    color: '#20C9A6',
+  },
+  {
+    title: 'Internet oddities',
+    text: 'Niche communities, playful interfaces, and things that make people smile.',
+    color: '#FF5C9D',
+  },
+]
+
 type PlayBody = {
   el: HTMLSpanElement | null
   baseX: number
@@ -758,11 +818,44 @@ export default function App() {
           <p className="explore-lede">
             Education, experience, projects, skills, and the little things that make me me—all in one place.
           </p>
-          <div className="explore-index" aria-hidden="true">
-            <span>01 — experience</span>
-            <span>02 — projects</span>
-            <span>03 — skills</span>
-            <span>04 — elsewhere</span>
+          <nav className="explore-index" aria-label="Explore sections">
+            <a href="#journey">01 — journey</a>
+            <a href="#projects">02 — projects</a>
+            <a href="#skills">03 — skills</a>
+            <a href="#extras">04 — extras</a>
+          </nav>
+        </div>
+      </section>
+
+      <section className="section" id="journey">
+        <div className="section-inner">
+          <div className="section-head">
+            <p className="section-kicker">the path so far</p>
+            <h2 className="section-title">
+              A little <span className="accent-coral">journey</span>
+            </h2>
+          </div>
+          <div className="journey-list">
+            {journey.map((entry, i) => (
+              <motion.article
+                key={entry.title}
+                className="journey-item"
+                style={{ '--journey-color': entry.color } as MotionStyle}
+                initial={reduced ? false : { opacity: 0, y: 24 }}
+                whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.3 }}
+                transition={{ duration: 0.45, delay: i * 0.07 }}
+              >
+                <div className="journey-marker" aria-hidden="true"><span /></div>
+                <p className="journey-period">{entry.period}</p>
+                <div className="journey-body">
+                  <p className="journey-kind">{entry.kind}</p>
+                  <h3>{entry.title}</h3>
+                  <p className="journey-place">{entry.place}</p>
+                  <p className="journey-detail">{entry.detail}</p>
+                </div>
+              </motion.article>
+            ))}
           </div>
         </div>
       </section>
@@ -786,9 +879,12 @@ export default function App() {
                 viewport={{ once: true, amount: 0.25 }}
                 transition={{ duration: 0.45, delay: i * 0.08 }}
               >
+                <div className="project-top">
+                  <span className="project-number">{String(i + 1).padStart(2, '0')}</span>
+                  <span className="project-meta">{project.role ?? 'Selected work'}</span>
+                </div>
                 <h3>{project.name}</h3>
                 <p className="project-blurb">{project.blurb}</p>
-                {project.role ? <p className="project-meta">{project.role}</p> : null}
                 <ul className="tag-list" aria-label={`${project.name} tech`}>
                   {project.tech.map((item) => (
                     <li className="tag" key={item}>
@@ -822,6 +918,9 @@ export default function App() {
             <h2 className="section-title">
               Skills &amp; <span className="accent-mint">tools</span>
             </h2>
+            <p className="section-lede">
+              A working toolkit, not a trophy shelf. These are the things I reach for most often.
+            </p>
           </div>
           <div className="skills-grid">
             {skillGroups.map((group, i) => (
@@ -834,7 +933,10 @@ export default function App() {
                 viewport={{ once: true, amount: 0.3 }}
                 transition={{ duration: 0.4, delay: i * 0.04 }}
               >
-                <h3>{group.title}</h3>
+                <div className="skill-card-head">
+                  <h3>{group.title}</h3>
+                  <span>{String(group.items.length).padStart(2, '0')}</span>
+                </div>
                 <ul className="skill-items">
                   {group.items.map((item) => (
                     <li className="skill-item" key={item}>
@@ -848,68 +950,78 @@ export default function App() {
         </div>
       </section>
 
-      <section className="section" id="background">
+      <section className="section" id="extras">
         <div className="section-inner">
           <div className="section-head">
-            <p className="section-kicker">where i&apos;ve been</p>
+            <p className="section-kicker">beyond the résumé</p>
             <h2 className="section-title">
-              Background &amp; <span className="accent-coral">elsewhere</span>
+              Little <span className="accent-yellow">extras</span>
             </h2>
+            <p className="section-lede">
+              The certificates, small wins, and curious detours that do not quite fit anywhere else.
+            </p>
           </div>
-          <div className="background-grid">
+          <div className="extras-grid">
+            {extras.map((group, i) => (
+              <motion.div
+                key={group.label}
+                className="extras-card"
+                style={{ borderTop: `5px solid ${group.color}` }}
+                initial={reduced ? false : { opacity: 0, y: 24 }}
+                whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.3 }}
+                transition={{ duration: 0.45, delay: i * 0.07 }}
+              >
+                <p className="extras-label">{group.label}</p>
+                <h3>{group.title}</h3>
+                <ul className="extras-list">
+                  {group.items.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </motion.div>
+            ))}
             <motion.div
-              className="background-card"
-              initial={reduced ? false : { opacity: 0, y: 24 }}
-              whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.3 }}
-              transition={{ duration: 0.45 }}
-            >
-              <p className="background-label">Education</p>
-              <h3>Built on curiosity</h3>
-              <p className="background-text">
-                Data science student, constantly learning in public and turning coursework into things I can actually play with.
-              </p>
-              <div className="background-tags">
-                <span>Data Science</span>
-                <span>AI / ML</span>
-                <span>Analytics</span>
-              </div>
-            </motion.div>
-            <motion.div
-              className="background-card"
-              initial={reduced ? false : { opacity: 0, y: 24 }}
-              whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.3 }}
-              transition={{ duration: 0.45, delay: 0.08 }}
-            >
-              <p className="background-label">Experience</p>
-              <h3>Learning by building</h3>
-              <p className="background-text">
-                From AI skincare advisors to multimodal medical tools—I like projects where I can own an idea end to end.
-              </p>
-              <div className="background-tags">
-                <span>Python</span>
-                <span>FastAPI</span>
-                <span>Google ADK</span>
-              </div>
-            </motion.div>
-            <motion.div
-              className="background-card background-card--wide"
+              className="interests-card"
               initial={reduced ? false : { opacity: 0, y: 24 }}
               whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.3 }}
               transition={{ duration: 0.45, delay: 0.14 }}
             >
-              <p className="background-label">Achievements &amp; interests</p>
-              <h3>The bits between the big things</h3>
-              <p className="background-text">
-                Certifications, small wins, and whatever I&apos;m currently obsessing over live here. This is a living section—more soon.
-              </p>
-              <button className="btn-link" type="button" onClick={() => openPanel('contact')}>
-                Tell me about yours ↗
-              </button>
+              <p className="extras-label">currently curious about</p>
+              <div className="interest-list">
+                {interests.map((interest, i) => (
+                  <motion.div
+                    key={interest.title}
+                    className="interest-item"
+                    style={{ '--interest-color': interest.color } as MotionStyle}
+                    initial={reduced ? false : { opacity: 0, x: 12 }}
+                    whileInView={reduced ? undefined : { opacity: 1, x: 0 }}
+                    viewport={{ once: true, amount: 0.3 }}
+                    transition={{ duration: 0.4, delay: 0.18 + i * 0.06 }}
+                  >
+                    <span className="interest-dot" aria-hidden="true" />
+                    <div>
+                      <h4>{interest.title}</h4>
+                      <p>{interest.text}</p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
             </motion.div>
           </div>
+          <motion.div
+            className="extras-cta"
+            initial={reduced ? false : { opacity: 0, y: 20 }}
+            whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.4 }}
+            transition={{ duration: 0.45 }}
+          >
+            <p>Got something interesting in mind?</p>
+            <button className="btn-link" type="button" onClick={() => openPanel('contact')}>
+              Let&apos;s talk ↗
+            </button>
+          </motion.div>
         </div>
       </section>
       </div>

@@ -394,23 +394,16 @@ a {
 
 .section-title .accent-coral { color: var(--coral); }
 .section-title .accent-blue { color: var(--blue); }
+.section-title .accent-yellow { color: var(--yellow); }
 .section-title .accent-mint { color: var(--mint); }
 .section-title .accent-lilac { color: var(--lilac); }
 
-.about-card {
-  background: var(--paper);
-  border: var(--border);
-  border-radius: 24px;
-  box-shadow: var(--shadow);
-  padding: 28px 30px;
-  max-width: 760px;
-  transform: rotate(-0.6deg);
-}
-
-.about-card p {
-  margin: 0;
-  font-size: clamp(1.1rem, 2.2vw, 1.35rem);
-  line-height: 1.6;
+.section-lede {
+  max-width: 60ch;
+  margin: 18px 0 0;
+  font-size: clamp(1rem, 1.8vw, 1.15rem);
+  line-height: 1.65;
+  color: var(--muted);
 }
 
 .projects-grid {
@@ -434,6 +427,19 @@ a {
 .project-card:hover {
   transform: translate(-2px, -3px) rotate(0deg) !important;
   box-shadow: 8px 8px 0 var(--ink);
+}
+
+.project-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.project-number {
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  color: var(--coral);
 }
 
 .project-card h3 {
@@ -520,10 +526,24 @@ a {
   box-shadow: 4px 4px 0 var(--ink);
 }
 
+.skill-card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
 .skill-card h3 {
-  margin: 0 0 10px;
+  margin: 0;
   font-size: 1.05rem;
   letter-spacing: -0.02em;
+}
+
+.skill-card-head span {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--muted);
 }
 
 .skill-items {
@@ -822,31 +842,120 @@ a {
   color: var(--muted);
 }
 
-.background-grid {
+.explore-index a {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.explore-index a:hover,
+.explore-index a:focus-visible {
+  color: var(--ink);
+}
+
+.journey-list {
+  position: relative;
+}
+
+.journey-list::before {
+  position: absolute;
+  top: 28px;
+  bottom: 28px;
+  left: 11px;
+  width: 1px;
+  background: rgba(22, 21, 26, 0.18);
+  content: '';
+}
+
+.journey-item {
+  position: relative;
+  display: grid;
+  grid-template-columns: 24px 110px 1fr;
+  gap: 20px;
+  padding: 24px 0;
+  border-bottom: 1px solid rgba(22, 21, 26, 0.12);
+}
+
+.journey-item:last-child {
+  border-bottom: 0;
+}
+
+.journey-marker {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  padding-top: 5px;
+}
+
+.journey-marker span {
+  width: 11px;
+  height: 11px;
+  border: 2px solid var(--journey-color);
+  border-radius: 50%;
+  background: var(--paper);
+  box-shadow: 0 0 0 4px var(--cream);
+}
+
+.journey-period {
+  margin: 0;
+  padding-top: 3px;
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.journey-kind {
+  margin: 0 0 6px;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--journey-color);
+}
+
+.journey-body h3 {
+  margin: 0 0 6px;
+  font-size: 1.5rem;
+  letter-spacing: -0.03em;
+}
+
+.journey-place {
+  margin: 0 0 12px;
+  font-size: 0.95rem;
+  color: var(--muted);
+}
+
+.journey-detail {
+  margin: 0;
+  max-width: 62ch;
+  color: #2b2a30;
+  line-height: 1.65;
+}
+
+.extras-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 20px;
+  align-items: start;
 }
 
-.background-card {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 30px;
+.extras-card,
+.interests-card {
+  padding: 28px;
+  border-radius: 24px;
+}
+
+.extras-card {
   background: var(--paper);
   border: var(--border);
-  border-radius: 24px;
   box-shadow: 5px 5px 0 var(--ink);
 }
 
-.background-card--wide {
-  grid-column: 1 / -1;
-  background: #fff8e6;
-}
-
-.background-label {
-  margin: 0;
+.extras-label {
+  margin: 0 0 12px;
   font-family: 'DM Mono', monospace;
   font-size: 11px;
   letter-spacing: 0.14em;
@@ -854,34 +963,98 @@ a {
   color: var(--coral);
 }
 
-.background-card h3 {
-  margin: 0;
-  font-size: 1.5rem;
-  line-height: 1.15;
+.extras-card h3 {
+  margin: 0 0 20px;
+  font-size: 1.45rem;
+  line-height: 1.2;
   letter-spacing: -0.03em;
 }
 
-.background-text {
+.extras-list {
+  display: grid;
+  gap: 12px;
   margin: 0;
-  max-width: 60ch;
+  padding: 0;
+  list-style: none;
+}
+
+.extras-list li {
+  position: relative;
+  padding-left: 18px;
   color: #2b2a30;
-  line-height: 1.6;
+  line-height: 1.5;
 }
 
-.background-tags {
+.extras-list li::before {
+  position: absolute;
+  top: 0.65em;
+  left: 0;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--yellow);
+  content: '';
+}
+
+.interests-card {
+  grid-row: span 2;
+  background: var(--ink);
+  color: var(--cream);
+  box-shadow: 8px 8px 0 var(--mint);
+}
+
+.interests-card .extras-label {
+  color: rgba(255, 253, 248, 0.55);
+}
+
+.interest-list {
+  display: grid;
+  gap: 20px;
+}
+
+.interest-item {
+  position: relative;
+  padding-left: 22px;
+}
+
+.interest-dot {
+  position: absolute;
+  top: 7px;
+  left: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--interest-color);
+}
+
+.interest-item h4 {
+  margin: 0 0 4px;
+  font-size: 1.05rem;
+  letter-spacing: -0.02em;
+}
+
+.interest-item p {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: rgba(255, 253, 248, 0.65);
+}
+
+.extras-cta {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-top: auto;
-  padding-top: 10px;
+  gap: 18px;
+  margin-top: 28px;
+  padding: 26px 28px;
+  border: 1.5px dashed rgba(22, 21, 26, 0.25);
+  border-radius: 20px;
 }
 
-.background-tags span {
-  padding: 5px 10px;
-  border: 1.5px solid rgba(22, 21, 26, 0.25);
-  border-radius: 999px;
-  font-family: 'DM Mono', monospace;
-  font-size: 11px;
+.extras-cta p {
+  margin: 0;
+  font-size: 1.1rem;
 }
 
 .site-footer {
@@ -918,6 +1091,7 @@ a {
 }
 
 .reduce-motion .nav-link::after,
+.reduce-motion .explore-index a,
 .reduce-motion .hero-reset,
 .reduce-motion .scroll-hint,
 .reduce-motion .panel-close,
@@ -1027,16 +1201,41 @@ a {
     display: none;
   }
 
-  .background-grid {
+  .journey-list::before {
+    left: 9px;
+  }
+
+  .journey-item {
+    grid-template-columns: 20px 1fr;
+    gap: 8px 14px;
+    padding: 20px 0;
+  }
+
+  .journey-marker {
+    grid-row: 1 / span 2;
+    padding-top: 3px;
+  }
+
+  .journey-period,
+  .journey-body {
+    grid-column: 2;
+  }
+
+  .extras-grid {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .background-card--wide {
-    grid-column: auto;
+  .interests-card {
+    grid-row: auto;
   }
 
-  .background-card {
+  .extras-card,
+  .interests-card {
     padding: 24px;
+  }
+
+  .extras-cta {
+    padding: 22px;
   }
 }
 
