@@ -138,29 +138,16 @@ a {
   pointer-events: none;
 }
 
-.nav-brand,
 .nav-links,
 .nav-link {
   pointer-events: auto;
-}
-
-.nav-brand {
-  display: inline-flex;
-  align-items: center;
-  text-decoration: none;
-}
-
-.nav-brand-name {
-  font-family: 'DM Mono', monospace;
-  font-size: 12px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
 }
 
 .nav-links {
   display: flex;
   align-items: center;
   gap: clamp(18px, 3vw, 38px);
+  margin-left: auto;
 }
 
 .nav-link {
@@ -463,6 +450,23 @@ a {
   margin: 0 auto;
 }
 
+.zoom-section {
+  display: flex;
+  min-height: 150vh;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 0 20px;
+}
+
+.zoom-stage {
+  position: sticky;
+  top: 14vh;
+  width: 100%;
+  max-width: 1040px;
+  transform-origin: center center;
+  will-change: transform, opacity;
+}
+
 .section-head {
   margin-bottom: 28px;
 }
@@ -608,15 +612,12 @@ a {
 .skills-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-  gap: 18px;
+  gap: 28px 32px;
 }
 
 .skill-card {
-  background: var(--paper);
-  border: var(--border);
-  border-radius: 20px;
-  padding: 18px 18px 16px;
-  box-shadow: 4px 4px 0 var(--ink);
+  border-top: 2px solid var(--line);
+  padding-top: 16px;
 }
 
 .skill-card-head {
@@ -1211,11 +1212,6 @@ a {
     padding: 18px 16px;
   }
 
-  .nav-brand-name {
-    font-size: 10px;
-    letter-spacing: 0.08em;
-  }
-
   .nav-links {
     gap: 16px;
   }
@@ -1254,8 +1250,13 @@ a {
     padding: 56px 16px;
   }
 
-  .explore-intro {
-    padding-top: 80px;
+  .zoom-section {
+    min-height: 130vh;
+    padding: 0 16px;
+  }
+
+  .zoom-stage {
+    top: 12vh;
   }
 
   .explore-index {

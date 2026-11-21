@@ -1,4 +1,4 @@
-import { AnimatePresence, motion, useReducedMotion, type MotionStyle, type Variants } from 'framer-motion'
+import { AnimatePresence, motion, useReducedMotion, useScroll, useTransform, type MotionStyle, type Variants } from 'framer-motion'
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
 
 type PanelName = 'about' | 'contact'
@@ -95,57 +95,27 @@ const contactLinks = [
 
 const panelEase = [0.22, 1, 0.36, 1] as const
 
-const projects = [
-  {
-    name: 'Lucent',
-    blurb:
-      'An AI skincare advisor that helps you read your skin and build a routine that actually fits—no trendy nonsense.',
-    role: 'Developer & AI integrator',
-    tech: ['Python', 'Google ADK', 'Node.js', 'DB management'],
-    links: [
-      { label: 'Live site', href: 'https://www.lucentnepal.com' },
-      { label: 'GitHub', href: 'https://github.com/Sadhana-up/Lucent', alt: true },
-    ],
-    tilt: '-1.2deg',
-    accent: 'var(--coral)',
-  },
-  {
-    name: 'CuraNova',
-    blurb:
-      'A multimodal medical AI assistant that can work with things like X-rays, prescriptions, and reports—pairing medical reasoning with a verification step.',
-    tech: ['Python', 'FastAPI', 'Bun', 'MedGemma', 'Google ADK', 'Gemini', 'MCP/A2A'],
-    links: [{ label: 'GitHub', href: 'https://github.com/Sadhana-up/CuraNova', alt: true }],
-    tilt: '1deg',
-    accent: 'var(--blue)',
-  },
-]
-
 const skillGroups = [
-  { title: 'Languages', items: ['Python (proficient)', 'R', 'Java'], color: 'var(--coral)' },
+  { title: 'Languages', items: ['Python (proficient)', 'R', 'Java'] },
   {
     title: 'ML / AI Frameworks',
     items: ['TensorFlow', 'scikit-learn', 'Keras', 'Hugging Face Transformers'],
-    color: 'var(--blue)',
   },
   {
     title: 'Data & Analytics',
     items: ['NumPy', 'Pandas', 'Matplotlib', 'Seaborn', 'Data Visualisation'],
-    color: 'var(--mint)',
   },
   {
     title: 'LLM & Agent Tools',
     items: ['Google Agent Development Kit (ADK)', 'Google Colab'],
-    color: 'var(--lilac)',
   },
   {
     title: 'Web / APIs',
     items: ['REST API consumption', 'Flask (basic)', 'Git & GitHub'],
-    color: 'var(--yellow)',
   },
   {
     title: 'Tools & Platforms',
     items: ['VS Code', 'Jupyter Notebooks', 'Google Colab', 'Linux CLI'],
-    color: 'var(--pink)',
   },
 ]
 
@@ -153,26 +123,18 @@ const journey = [
   {
     period: 'Now',
     kind: 'Education',
-    title: 'Data science student',
-    place: 'Add your degree, school, and year here',
-    detail: 'Replace this with what you are studying, the questions you are chasing, and the coursework that changed how you think.',
+    title: 'Data Science',
+    place: 'Kathmandu University',
+    detail: '',
     color: 'var(--coral)',
   },
   {
-    period: '2025',
+    period: 'June — ongoing',
     kind: 'Experience',
-    title: 'Building with AI',
-    place: 'Independent projects',
-    detail: 'From Lucent to CuraNova, I have been turning ideas into working prototypes with Python, FastAPI, and Google ADK.',
+    title: 'AI Developer',
+    place: 'Lucent AI Nepal',
+    detail: '',
     color: 'var(--blue)',
-  },
-  {
-    period: 'Before',
-    kind: 'Foundation',
-    title: 'Learning in public',
-    place: 'Curiosity-driven',
-    detail: 'Notebooks, tiny experiments, and a growing habit of sharing the messy middle of learning something new.',
-    color: 'var(--mint)',
   },
 ]
 
@@ -648,6 +610,29 @@ function SlidePanel({
   )
 }
 
+function ZoomSection({
+  id,
+  reduced,
+  children,
+}: {
+  id: string
+  reduced: boolean
+  children: React.ReactNode
+}) {
+  const ref = useRef<HTMLElement>(null)
+  const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] })
+  const scale = useTransform(scrollYProgress, [0, 0.45, 1], [0.86, 1, 0.92])
+  const opacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0.3, 1, 1, 0.3])
+
+  return (
+    <section id={id} className="section zoom-section" ref={ref}>
+      <motion.div className="zoom-stage" style={reduced ? undefined : { scale, opacity }}>
+        <div className="section-inner">{children}</div>
+      </motion.div>
+    </section>
+  )
+}
+
 export default function App() {
   const reduced = useReducedMotion() ?? false
   const [activePanel, setActivePanel] = useState<PanelName | null>(null)
@@ -695,9 +680,6 @@ export default function App() {
   return (
     <div className={`app${reduced ? ' reduce-motion' : ''}${activePanel ? ' panel-open' : ''}`}>
       <nav className="site-nav" aria-label="Main navigation">
-        <a className="nav-brand" href="#top" onClick={closePanel}>
-          <span className="nav-brand-name">Sadhana Uprety</span>
-        </a>
         <div className="nav-links">
           <motion.button
             className={`nav-link${activePanel === 'about' ? ' is-active' : ''}`}
@@ -854,28 +836,7 @@ export default function App() {
       </SlidePanel>
 
       <div className="explore" id="explore">
-      <section className="section explore-intro">
-        <div className="section-inner">
-          <div className="section-head">
-            <p className="section-kicker">the rest of the story</p>
-            <h2 className="section-title">
-              Keep <span className="accent-blue">exploring</span>
-            </h2>
-          </div>
-          <p className="explore-lede">
-            Education, experience, projects, skills, and the little things that make me me—all in one place.
-          </p>
-          <nav className="explore-index" aria-label="Explore sections">
-            <a href="#journey">01 — journey</a>
-            <a href="#projects">02 — projects</a>
-            <a href="#skills">03 — skills</a>
-            <a href="#extras">04 — extras</a>
-          </nav>
-        </div>
-      </section>
-
-      <section className="section" id="journey">
-        <div className="section-inner">
+      <ZoomSection id="journey" reduced={reduced}>
           <div className="section-head">
             <p className="section-kicker">the path so far</p>
             <h2 className="section-title">
@@ -899,67 +860,14 @@ export default function App() {
                   <p className="journey-kind">{entry.kind}</p>
                   <h3>{entry.title}</h3>
                   <p className="journey-place">{entry.place}</p>
-                  <p className="journey-detail">{entry.detail}</p>
+                  {entry.detail ? <p className="journey-detail">{entry.detail}</p> : null}
                 </div>
               </motion.article>
             ))}
           </div>
-        </div>
-      </section>
+      </ZoomSection>
 
-      <section className="section" id="projects">
-        <div className="section-inner">
-          <div className="section-head">
-            <p className="section-kicker">things i&apos;ve built</p>
-            <h2 className="section-title">
-              Selected <span className="accent-blue">projects</span>
-            </h2>
-          </div>
-          <div className="projects-grid">
-            {projects.map((project, i) => (
-              <motion.article
-                key={project.name}
-                className="project-card"
-                style={{ transform: `rotate(${project.tilt})`, borderTop: `6px solid ${project.accent}` }}
-                initial={reduced ? false : { opacity: 0, y: 28 }}
-                whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.25 }}
-                transition={{ duration: 0.45, delay: i * 0.08 }}
-              >
-                <div className="project-top">
-                  <span className="project-number">{String(i + 1).padStart(2, '0')}</span>
-                  <span className="project-meta">{project.role ?? 'Selected work'}</span>
-                </div>
-                <h3>{project.name}</h3>
-                <p className="project-blurb">{project.blurb}</p>
-                <ul className="tag-list" aria-label={`${project.name} tech`}>
-                  {project.tech.map((item) => (
-                    <li className="tag" key={item}>
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-                <div className="project-links">
-                  {project.links.map((link) => (
-                    <a
-                      key={link.href}
-                      className={`btn-link${link.alt ? ' alt' : ''}`}
-                      href={link.href}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      {link.label} ↗
-                    </a>
-                  ))}
-                </div>
-              </motion.article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="section" id="skills">
-        <div className="section-inner">
+      <ZoomSection id="skills" reduced={reduced}>
           <div className="section-head">
             <p className="section-kicker">tools in the backpack</p>
             <h2 className="section-title">
@@ -974,7 +882,6 @@ export default function App() {
               <motion.div
                 key={group.title}
                 className="skill-card"
-                style={{ borderTop: `5px solid ${group.color}` }}
                 initial={reduced ? false : { opacity: 0, y: 20 }}
                 whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
                 viewport={{ once: true, amount: 0.3 }}
@@ -994,11 +901,9 @@ export default function App() {
               </motion.div>
             ))}
           </div>
-        </div>
-      </section>
+      </ZoomSection>
 
-      <section className="section" id="extras">
-        <div className="section-inner">
+      <ZoomSection id="extras" reduced={reduced}>
           <div className="section-head">
             <p className="section-kicker">beyond the résumé</p>
             <h2 className="section-title">
@@ -1069,8 +974,7 @@ export default function App() {
               Let&apos;s talk ↗
             </button>
           </motion.div>
-        </div>
-      </section>
+      </ZoomSection>
       </div>
 
       <footer className="site-footer">
