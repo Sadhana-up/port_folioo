@@ -3,6 +3,10 @@ import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } f
 
 type PanelName = 'about' | 'contact'
 
+type Theme = 'light' | 'dark'
+
+const getInitialTheme = (): Theme => (document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light')
+
 type ShapeKind = 'circle' | 'ring' | 'star' | 'pill' | 'blob' | 'cross'
 
 type ShapeSpec = {
@@ -20,23 +24,23 @@ type ShapeSpec = {
 }
 
 const shapes: ShapeSpec[] = [
-  { kind: 'circle', color: '#FF6B4A', size: 86, top: '13%', left: '7%', duration: 7, delay: 0.2, driftX: 22, driftY: -34, spin: 15 },
-  { kind: 'ring', color: '#3D5AFE', size: 66, top: '20%', left: '84%', duration: 8.5, delay: 0.5, driftX: -28, driftY: 26, spin: -18 },
-  { kind: 'star', color: '#FFC63F', size: 58, top: '68%', left: '9%', duration: 6.5, delay: 0.8, driftX: 18, driftY: -22, spin: 24 },
-  { kind: 'pill', color: '#20C9A6', size: 78, height: 34, top: '76%', left: '78%', duration: 9, delay: 0.35, driftX: -24, driftY: -28, spin: -12 },
-  { kind: 'blob', color: '#A774FF', size: 104, top: '7%', left: '61%', duration: 10, delay: 0.1, driftX: 26, driftY: 20, spin: 22 },
-  { kind: 'cross', color: '#FF5C9D', size: 46, top: '59%', left: '91%', duration: 7.5, delay: 0.65, driftX: -18, driftY: 30, spin: 20 },
-  { kind: 'circle', color: '#FFC63F', size: 26, top: '38%', left: '3%', duration: 6, delay: 0.95, driftX: 12, driftY: -18, spin: 0 },
-  { kind: 'ring', color: '#FF6B4A', size: 42, top: '86%', left: '43%', duration: 8, delay: 0.45, driftX: 6, driftY: -24, spin: -16 },
-  { kind: 'blob', color: '#20C9A6', size: 38, top: '30%', left: '94%', duration: 7, delay: 1.1, driftX: -10, driftY: 18, spin: 18 },
-  { kind: 'circle', color: '#20C9A6', size: 18, top: '48%', left: '16%', duration: 6.8, delay: 1.2, driftX: 16, driftY: 24, spin: 0 },
-  { kind: 'ring', color: '#A774FF', size: 30, top: '12%', left: '38%', duration: 9.2, delay: 0.6, driftX: 20, driftY: -20, spin: 14 },
-  { kind: 'star', color: '#FF5C9D', size: 34, top: '84%', left: '62%', duration: 7.8, delay: 0.9, driftX: -14, driftY: -18, spin: -22 },
-  { kind: 'pill', color: '#3D5AFE', size: 54, height: 22, top: '46%', left: '88%', duration: 10.5, delay: 0.25, driftX: -20, driftY: 22, spin: 10 },
-  { kind: 'cross', color: '#FFC63F', size: 28, top: '26%', left: '22%', duration: 8.2, delay: 1.05, driftX: 14, driftY: 26, spin: -18 },
+  { kind: 'circle', color: 'var(--coral)', size: 86, top: '13%', left: '7%', duration: 7, delay: 0.2, driftX: 22, driftY: -34, spin: 15 },
+  { kind: 'ring', color: 'var(--blue)', size: 66, top: '20%', left: '84%', duration: 8.5, delay: 0.5, driftX: -28, driftY: 26, spin: -18 },
+  { kind: 'star', color: 'var(--yellow)', size: 58, top: '68%', left: '9%', duration: 6.5, delay: 0.8, driftX: 18, driftY: -22, spin: 24 },
+  { kind: 'pill', color: 'var(--mint)', size: 78, height: 34, top: '76%', left: '78%', duration: 9, delay: 0.35, driftX: -24, driftY: -28, spin: -12 },
+  { kind: 'blob', color: 'var(--lilac)', size: 104, top: '7%', left: '61%', duration: 10, delay: 0.1, driftX: 26, driftY: 20, spin: 22 },
+  { kind: 'cross', color: 'var(--pink)', size: 46, top: '59%', left: '91%', duration: 7.5, delay: 0.65, driftX: -18, driftY: 30, spin: 20 },
+  { kind: 'circle', color: 'var(--yellow)', size: 26, top: '38%', left: '3%', duration: 6, delay: 0.95, driftX: 12, driftY: -18, spin: 0 },
+  { kind: 'ring', color: 'var(--coral)', size: 42, top: '86%', left: '43%', duration: 8, delay: 0.45, driftX: 6, driftY: -24, spin: -16 },
+  { kind: 'blob', color: 'var(--mint)', size: 38, top: '30%', left: '94%', duration: 7, delay: 1.1, driftX: -10, driftY: 18, spin: 18 },
+  { kind: 'circle', color: 'var(--mint)', size: 18, top: '48%', left: '16%', duration: 6.8, delay: 1.2, driftX: 16, driftY: 24, spin: 0 },
+  { kind: 'ring', color: 'var(--lilac)', size: 30, top: '12%', left: '38%', duration: 9.2, delay: 0.6, driftX: 20, driftY: -20, spin: 14 },
+  { kind: 'star', color: 'var(--pink)', size: 34, top: '84%', left: '62%', duration: 7.8, delay: 0.9, driftX: -14, driftY: -18, spin: -22 },
+  { kind: 'pill', color: 'var(--blue)', size: 54, height: 22, top: '46%', left: '88%', duration: 10.5, delay: 0.25, driftX: -20, driftY: 22, spin: 10 },
+  { kind: 'cross', color: 'var(--yellow)', size: 28, top: '26%', left: '22%', duration: 8.2, delay: 1.05, driftX: 14, driftY: 26, spin: -18 },
 ]
 
-const letterColors = ['#FF6B4A', '#3D5AFE', '#FFC63F', '#20C9A6', '#A774FF', '#FF5C9D', '#FF6B4A']
+const letterColors = ['var(--coral)', 'var(--blue)', 'var(--yellow)', 'var(--mint)', 'var(--lilac)', 'var(--pink)', 'var(--coral)']
 
 const name = 'Sadhana'
 
@@ -103,7 +107,7 @@ const projects = [
       { label: 'GitHub', href: 'https://github.com/Sadhana-up/Lucent', alt: true },
     ],
     tilt: '-1.2deg',
-    accent: '#FF6B4A',
+    accent: 'var(--coral)',
   },
   {
     name: 'CuraNova',
@@ -112,36 +116,36 @@ const projects = [
     tech: ['Python', 'FastAPI', 'Bun', 'MedGemma', 'Google ADK', 'Gemini', 'MCP/A2A'],
     links: [{ label: 'GitHub', href: 'https://github.com/Sadhana-up/CuraNova', alt: true }],
     tilt: '1deg',
-    accent: '#3D5AFE',
+    accent: 'var(--blue)',
   },
 ]
 
 const skillGroups = [
-  { title: 'Languages', items: ['Python (proficient)', 'R', 'Java'], color: '#FF6B4A' },
+  { title: 'Languages', items: ['Python (proficient)', 'R', 'Java'], color: 'var(--coral)' },
   {
     title: 'ML / AI Frameworks',
     items: ['TensorFlow', 'scikit-learn', 'Keras', 'Hugging Face Transformers'],
-    color: '#3D5AFE',
+    color: 'var(--blue)',
   },
   {
     title: 'Data & Analytics',
     items: ['NumPy', 'Pandas', 'Matplotlib', 'Seaborn', 'Data Visualisation'],
-    color: '#20C9A6',
+    color: 'var(--mint)',
   },
   {
     title: 'LLM & Agent Tools',
     items: ['Google Agent Development Kit (ADK)', 'Google Colab'],
-    color: '#A774FF',
+    color: 'var(--lilac)',
   },
   {
     title: 'Web / APIs',
     items: ['REST API consumption', 'Flask (basic)', 'Git & GitHub'],
-    color: '#FFC63F',
+    color: 'var(--yellow)',
   },
   {
     title: 'Tools & Platforms',
     items: ['VS Code', 'Jupyter Notebooks', 'Google Colab', 'Linux CLI'],
-    color: '#FF5C9D',
+    color: 'var(--pink)',
   },
 ]
 
@@ -152,7 +156,7 @@ const journey = [
     title: 'Data science student',
     place: 'Add your degree, school, and year here',
     detail: 'Replace this with what you are studying, the questions you are chasing, and the coursework that changed how you think.',
-    color: '#FF6B4A',
+    color: 'var(--coral)',
   },
   {
     period: '2025',
@@ -160,7 +164,7 @@ const journey = [
     title: 'Building with AI',
     place: 'Independent projects',
     detail: 'From Lucent to CuraNova, I have been turning ideas into working prototypes with Python, FastAPI, and Google ADK.',
-    color: '#3D5AFE',
+    color: 'var(--blue)',
   },
   {
     period: 'Before',
@@ -168,7 +172,7 @@ const journey = [
     title: 'Learning in public',
     place: 'Curiosity-driven',
     detail: 'Notebooks, tiny experiments, and a growing habit of sharing the messy middle of learning something new.',
-    color: '#20C9A6',
+    color: 'var(--mint)',
   },
 ]
 
@@ -177,13 +181,13 @@ const extras = [
     label: 'Certifications',
     title: 'Proof of the rabbit holes',
     items: ['Add a certification or course', 'Add another course or workshop', 'Add a self-directed milestone'],
-    color: '#FFC63F',
+    color: 'var(--yellow)',
   },
   {
     label: 'Achievements',
     title: 'Small wins, real momentum',
     items: ['Add a competition, hackathon, or award', 'Add a project milestone', 'Add something you are quietly proud of'],
-    color: '#A774FF',
+    color: 'var(--lilac)',
   },
 ]
 
@@ -191,17 +195,17 @@ const interests = [
   {
     title: 'Data with feelings',
     text: 'Visualisations and stories that make numbers feel a little more human.',
-    color: '#FF6B4A',
+    color: 'var(--coral)',
   },
   {
     title: 'Agent experiments',
     text: 'Small tools that reason, verify, and occasionally surprise me.',
-    color: '#20C9A6',
+    color: 'var(--mint)',
   },
   {
     title: 'Internet oddities',
     text: 'Niche communities, playful interfaces, and things that make people smile.',
-    color: '#FF5C9D',
+    color: 'var(--pink)',
   },
 ]
 
@@ -550,6 +554,28 @@ function ArrowIcon() {
   )
 }
 
+function MoonIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5a8.5 8.5 0 1 0 10.7 10.7Z" fill="currentColor" />
+    </svg>
+  )
+}
+
+function SunIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="1.8" />
+      <path
+        d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
+}
+
 function SlidePanel({
   panel,
   open,
@@ -625,7 +651,16 @@ function SlidePanel({
 export default function App() {
   const reduced = useReducedMotion() ?? false
   const [activePanel, setActivePanel] = useState<PanelName | null>(null)
+  const [theme, setTheme] = useState<Theme>(getInitialTheme)
   usePlaygroundPhysics(reduced)
+
+  useEffect(() => {
+    const root = document.documentElement
+    root.dataset.theme = theme
+    root.style.colorScheme = theme
+    localStorage.setItem('portfolio-theme', theme)
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'dark' ? '#141319' : '#F6F3EC')
+  }, [theme])
 
   useEffect(() => {
     if (!activePanel) return
@@ -643,6 +678,7 @@ export default function App() {
 
   const openPanel = (panel: PanelName) => setActivePanel(panel)
   const closePanel = () => setActivePanel(null)
+  const toggleTheme = () => setTheme((current) => (current === 'dark' ? 'light' : 'dark'))
   const putLettersBack = () => resetPlayBodies(reduced)
 
   const scrollToExplore = () => {
@@ -686,6 +722,17 @@ export default function App() {
           <motion.button className="nav-link nav-link--explore" type="button" onClick={scrollToExplore} whileHover={reduced ? undefined : { y: -2 }} whileTap={{ scale: 0.96 }}>
             More <span aria-hidden="true">↓</span>
           </motion.button>
+          <motion.button
+            className="theme-toggle"
+            type="button"
+            onClick={toggleTheme}
+            aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            whileHover={reduced ? undefined : { y: -2 }}
+            whileTap={{ scale: 0.96 }}
+          >
+            {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
+          </motion.button>
         </div>
       </nav>
 
@@ -717,10 +764,10 @@ export default function App() {
           <svg className="squiggle" viewBox="0 0 600 28" preserveAspectRatio="none" aria-hidden="true">
             <defs>
               <linearGradient id="squiggle-gradient" x1="0" y1="0" x2="1" y2="0">
-                <stop offset="0%" stopColor="#FF6B4A" />
-                <stop offset="30%" stopColor="#FFC63F" />
-                <stop offset="60%" stopColor="#20C9A6" />
-                <stop offset="100%" stopColor="#3D5AFE" />
+                <stop offset="0%" style={{ stopColor: 'var(--coral)' }} />
+                <stop offset="30%" style={{ stopColor: 'var(--yellow)' }} />
+                <stop offset="60%" style={{ stopColor: 'var(--mint)' }} />
+                <stop offset="100%" style={{ stopColor: 'var(--blue)' }} />
               </linearGradient>
             </defs>
             <motion.path
