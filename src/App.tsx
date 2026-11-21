@@ -62,29 +62,29 @@ const nameLetter: Variants = {
 }
 
 const bio =
-  "I’m a data science student who likes poking at messy data until it spills something interesting. I’m into AI, half-baked experiments, and those little ‘wait, that’s actually cool’ moments. Mostly just learning by building things and seeing where my curiosity takes me."
+  'Third-year data science student (2024–2028), currently going deeper into mathematics, statistics, and AI. Outside coursework, I read books.'
 
 const aboutStory = [
-  "I’m Sadhana, a data science student who likes finding the strange, lovely patterns hiding inside messy data. Most of my time goes into learning by building—small experiments, half-baked ideas, and the occasional happy accident.",
-  "I care about making technology feel a little more human: things that are useful, understandable, and maybe even a bit playful. When I’m not elbow-deep in a notebook, I’m usually chasing a new curiosity or adding to my collection of unfinished side quests.",
+  'I’m Sadhana. I’m in my third year of a Bachelor’s of Data Science at Kathmandu University, which I started in 2024 and expect to finish in 2028.',
+  'Right now I’m diving deeper into mathematics, statistics, and AI. Outside coursework I read books, and I tend to use whatever tools fit the problem in front of me rather than sticking to one setup.',
 ]
 
 const aboutDetails = [
   {
-    label: 'Background',
-    value: 'Data science student, exploratory coder, and professional over-thinker of tiny details.',
+    label: 'Degree',
+    value: 'Bachelor’s of Data Science, Kathmandu University · 2024–2028 (third year).',
   },
   {
-    label: 'Interests',
-    value: 'AI agents, data visualisation, interactive things, and the weird magic of niche internet communities.',
+    label: 'Focus',
+    value: 'Mathematics, statistics, and AI.',
   },
   {
-    label: 'Skills',
-    value: 'Python, pandas, scikit-learn, TensorFlow, FastAPI, and a growing love of agent tooling.',
+    label: 'Outside class',
+    value: 'Reading books.',
   },
   {
-    label: 'Currently into',
-    value: 'Multimodal models, playful interfaces, and learning in public.',
+    label: 'Tools',
+    value: 'I use a range of tools and pick the ones that suit what I’m working on.',
   },
 ]
 
@@ -697,7 +697,7 @@ export default function App() {
     root.dataset.theme = theme
     root.style.colorScheme = theme
     localStorage.setItem('portfolio-theme', theme)
-    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'dark' ? '#141319' : '#F6F3EC')
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'dark' ? '#17161A' : '#F7F4ED')
   }, [theme])
 
   useEffect(() => {
