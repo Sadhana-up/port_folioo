@@ -42,7 +42,8 @@ const shapes: ShapeSpec[] = [
 
 const letterColors = ['var(--coral)', 'var(--blue)', 'var(--yellow)', 'var(--mint)', 'var(--lilac)', 'var(--pink)', 'var(--coral)']
 
-const name = 'Sadhana'
+const nameParts = ['Sadhana', 'Uprety']
+const name = nameParts.join(' ')
 
 const nameContainer: Variants = {
   hidden: {},
@@ -95,79 +96,53 @@ const contactLinks = [
 
 const panelEase = [0.22, 1, 0.36, 1] as const
 
-const skillGroups = [
-  { title: 'Languages', items: ['Python (proficient)', 'R', 'Java'] },
-  {
-    title: 'ML / AI Frameworks',
-    items: ['TensorFlow', 'scikit-learn', 'Keras', 'Hugging Face Transformers'],
-  },
-  {
-    title: 'Data & Analytics',
-    items: ['NumPy', 'Pandas', 'Matplotlib', 'Seaborn', 'Data Visualisation'],
-  },
-  {
-    title: 'LLM & Agent Tools',
-    items: ['Google Agent Development Kit (ADK)', 'Google Colab'],
-  },
-  {
-    title: 'Web / APIs',
-    items: ['REST API consumption', 'Flask (basic)', 'Git & GitHub'],
-  },
-  {
-    title: 'Tools & Platforms',
-    items: ['VS Code', 'Jupyter Notebooks', 'Google Colab', 'Linux CLI'],
-  },
-]
+type StackCardData = {
+  eyebrow: string
+  title: string
+  subtitle: string
+  color: string
+  items?: string[]
+  note?: string
+}
 
-const journey = [
+const journeyCards: StackCardData[] = [
   {
-    period: 'Now',
-    kind: 'Education',
+    eyebrow: 'Now · Education',
     title: 'Data Science',
-    place: 'Kathmandu University',
-    detail: '',
+    subtitle: 'Kathmandu University',
     color: 'var(--coral)',
+    note: 'Learning in public, building small experiments, and following the interesting questions.',
   },
   {
-    period: 'June — ongoing',
-    kind: 'Experience',
+    eyebrow: 'June — ongoing · Experience',
     title: 'AI Developer',
-    place: 'Lucent AI Nepal',
-    detail: '',
+    subtitle: 'Lucent AI Nepal',
     color: 'var(--blue)',
+    note: 'Turning messy problems into working tools, one iteration at a time.',
   },
 ]
 
-const extras = [
+const skillCards: StackCardData[] = [
   {
-    label: 'Certifications',
-    title: 'Proof of the rabbit holes',
-    items: ['Add a certification or course', 'Add another course or workshop', 'Add a self-directed milestone'],
-    color: 'var(--yellow)',
-  },
-  {
-    label: 'Achievements',
-    title: 'Small wins, real momentum',
-    items: ['Add a competition, hackathon, or award', 'Add a project milestone', 'Add something you are quietly proud of'],
-    color: 'var(--lilac)',
-  },
-]
-
-const interests = [
-  {
-    title: 'Data with feelings',
-    text: 'Visualisations and stories that make numbers feel a little more human.',
-    color: 'var(--coral)',
-  },
-  {
-    title: 'Agent experiments',
-    text: 'Small tools that reason, verify, and occasionally surprise me.',
+    eyebrow: 'Languages & data',
+    title: 'Python-first',
+    subtitle: 'The things I reach for every day.',
     color: 'var(--mint)',
+    items: ['Python', 'R', 'Pandas', 'NumPy', 'Matplotlib'],
   },
   {
-    title: 'Internet oddities',
-    text: 'Niche communities, playful interfaces, and things that make people smile.',
-    color: 'var(--pink)',
+    eyebrow: 'Models & agents',
+    title: 'Build the smart bit',
+    subtitle: 'From classic ML to small, curious agents.',
+    color: 'var(--lilac)',
+    items: ['scikit-learn', 'TensorFlow', 'Keras', 'Hugging Face', 'Google ADK'],
+  },
+  {
+    eyebrow: 'Tools & platforms',
+    title: 'Make it real',
+    subtitle: 'Getting an idea out of the notebook.',
+    color: 'var(--yellow)',
+    items: ['FastAPI', 'Flask', 'Git & GitHub', 'Jupyter', 'VS Code'],
   },
 ]
 
@@ -610,25 +585,103 @@ function SlidePanel({
   )
 }
 
-function ZoomSection({
-  id,
+function StackCardView({
+  card,
+  index,
+  total,
   reduced,
-  children,
 }: {
-  id: string
+  card: StackCardData
+  index: number
+  total: number
   reduced: boolean
-  children: React.ReactNode
 }) {
-  const ref = useRef<HTMLElement>(null)
-  const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] })
-  const scale = useTransform(scrollYProgress, [0, 0.45, 1], [0.86, 1, 0.92])
-  const opacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0.3, 1, 1, 0.3])
+  const ref = useRef<HTMLDivElement>(null)
+  const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end center'] })
+  const points = [0, 0.8, 1]
+
+  const y = useTransform(scrollYProgress, points, reduced ? [0, 0, 0] : [64, 0, -14])
+  const scale = useTransform(scrollYProgress, points, reduced ? [1, 1, 1] : [0.94, 1, 0.975])
+  const rotate = useTransform(
+    scrollYProgress,
+    points,
+    reduced ? [0, 0, 0] : [index % 2 === 0 ? -1.6 : 1.6, 0, index % 2 === 0 ? 0.5 : -0.5],
+  )
 
   return (
-    <section id={id} className="section zoom-section" ref={ref}>
-      <motion.div className="zoom-stage" style={reduced ? undefined : { scale, opacity }}>
-        <div className="section-inner">{children}</div>
-      </motion.div>
+    <div className="stack-item" ref={ref} style={{ top: `${92 + index * 12}px`, zIndex: index + 1 }}>
+      <motion.article
+        className="stack-card"
+        style={
+          {
+            '--card-color': card.color,
+            y,
+            scale,
+            rotate,
+            transformOrigin: 'center top',
+          } as MotionStyle
+        }
+      >
+        <span className="stack-accent" aria-hidden="true" />
+        <div className="stack-card-top">
+          <span>{card.eyebrow}</span>
+          <span className="stack-card-count">
+            {String(index + 1).padStart(2, '0')} / {String(total).padStart(2, '0')}
+          </span>
+        </div>
+        <h3>{card.title}</h3>
+        <p className="stack-card-sub">{card.subtitle}</p>
+        {card.note ? <p className="stack-card-note">{card.note}</p> : null}
+        {card.items ? (
+          <ul className="stack-chips">
+            {card.items.map((item) => (
+              <li className="stack-chip" key={item}>
+                {item}
+              </li>
+            ))}
+          </ul>
+        ) : null}
+      </motion.article>
+    </div>
+  )
+}
+
+function StackedSection({
+  id,
+  kicker,
+  title,
+  accent,
+  accentClass,
+  lede,
+  cards,
+  reduced,
+}: {
+  id: string
+  kicker: string
+  title: string
+  accent: string
+  accentClass: string
+  lede: string
+  cards: StackCardData[]
+  reduced: boolean
+}) {
+  return (
+    <section id={id} className="section stacked-section">
+      <div className="section-inner">
+        <div className="section-head stacked-head">
+          <p className="section-kicker">{kicker}</p>
+          <h2 className="section-title">
+            {title} <span className={accentClass}>{accent}</span>
+          </h2>
+          <p className="section-lede">{lede}</p>
+        </div>
+        <div className="stack-list">
+          {cards.map((card, i) => (
+            <StackCardView key={card.title} card={card} index={i} total={cards.length} reduced={reduced} />
+          ))}
+          {!reduced ? <div className="stack-tail" aria-hidden="true" /> : null}
+        </div>
+      </div>
     </section>
   )
 }
@@ -738,8 +791,12 @@ export default function App() {
           </motion.p>
 
           <motion.h1 className="name" variants={nameContainer} initial="hidden" animate="show" aria-label={name}>
-            {name.split('').map((char, i) => (
-              <PlayfulLetter key={`${char}-${i}`} char={char} index={i} reduced={reduced} />
+            {nameParts.map((part, line) => (
+              <span className="name-line" key={part}>
+                {part.split('').map((char, i) => (
+                  <PlayfulLetter key={`${char}-${line}-${i}`} char={char} index={line * 7 + i} reduced={reduced} />
+                ))}
+              </span>
             ))}
           </motion.h1>
 
@@ -836,145 +893,27 @@ export default function App() {
       </SlidePanel>
 
       <div className="explore" id="explore">
-      <ZoomSection id="journey" reduced={reduced}>
-          <div className="section-head">
-            <p className="section-kicker">the path so far</p>
-            <h2 className="section-title">
-              A little <span className="accent-coral">journey</span>
-            </h2>
-          </div>
-          <div className="journey-list">
-            {journey.map((entry, i) => (
-              <motion.article
-                key={entry.title}
-                className="journey-item"
-                style={{ '--journey-color': entry.color } as MotionStyle}
-                initial={reduced ? false : { opacity: 0, y: 24 }}
-                whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.3 }}
-                transition={{ duration: 0.45, delay: i * 0.07 }}
-              >
-                <div className="journey-marker" aria-hidden="true"><span /></div>
-                <p className="journey-period">{entry.period}</p>
-                <div className="journey-body">
-                  <p className="journey-kind">{entry.kind}</p>
-                  <h3>{entry.title}</h3>
-                  <p className="journey-place">{entry.place}</p>
-                  {entry.detail ? <p className="journey-detail">{entry.detail}</p> : null}
-                </div>
-              </motion.article>
-            ))}
-          </div>
-      </ZoomSection>
+        <StackedSection
+          id="journey"
+          kicker="the path so far"
+          title="A little"
+          accent="journey"
+          accentClass="accent-coral"
+          lede="Two chapters so far, still very much in progress."
+          cards={journeyCards}
+          reduced={reduced}
+        />
 
-      <ZoomSection id="skills" reduced={reduced}>
-          <div className="section-head">
-            <p className="section-kicker">tools in the backpack</p>
-            <h2 className="section-title">
-              Skills &amp; <span className="accent-mint">tools</span>
-            </h2>
-            <p className="section-lede">
-              A working toolkit, not a trophy shelf. These are the things I reach for most often.
-            </p>
-          </div>
-          <div className="skills-grid">
-            {skillGroups.map((group, i) => (
-              <motion.div
-                key={group.title}
-                className="skill-card"
-                initial={reduced ? false : { opacity: 0, y: 20 }}
-                whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.3 }}
-                transition={{ duration: 0.4, delay: i * 0.04 }}
-              >
-                <div className="skill-card-head">
-                  <h3>{group.title}</h3>
-                  <span>{String(group.items.length).padStart(2, '0')}</span>
-                </div>
-                <ul className="skill-items">
-                  {group.items.map((item) => (
-                    <li className="skill-item" key={item}>
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </motion.div>
-            ))}
-          </div>
-      </ZoomSection>
-
-      <ZoomSection id="extras" reduced={reduced}>
-          <div className="section-head">
-            <p className="section-kicker">beyond the résumé</p>
-            <h2 className="section-title">
-              Little <span className="accent-yellow">extras</span>
-            </h2>
-            <p className="section-lede">
-              The certificates, small wins, and curious detours that do not quite fit anywhere else.
-            </p>
-          </div>
-          <div className="extras-grid">
-            {extras.map((group, i) => (
-              <motion.div
-                key={group.label}
-                className="extras-card"
-                style={{ borderTop: `5px solid ${group.color}` }}
-                initial={reduced ? false : { opacity: 0, y: 24 }}
-                whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.3 }}
-                transition={{ duration: 0.45, delay: i * 0.07 }}
-              >
-                <p className="extras-label">{group.label}</p>
-                <h3>{group.title}</h3>
-                <ul className="extras-list">
-                  {group.items.map((item) => (
-                    <li key={item}>{item}</li>
-                  ))}
-                </ul>
-              </motion.div>
-            ))}
-            <motion.div
-              className="interests-card"
-              initial={reduced ? false : { opacity: 0, y: 24 }}
-              whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.3 }}
-              transition={{ duration: 0.45, delay: 0.14 }}
-            >
-              <p className="extras-label">currently curious about</p>
-              <div className="interest-list">
-                {interests.map((interest, i) => (
-                  <motion.div
-                    key={interest.title}
-                    className="interest-item"
-                    style={{ '--interest-color': interest.color } as MotionStyle}
-                    initial={reduced ? false : { opacity: 0, x: 12 }}
-                    whileInView={reduced ? undefined : { opacity: 1, x: 0 }}
-                    viewport={{ once: true, amount: 0.3 }}
-                    transition={{ duration: 0.4, delay: 0.18 + i * 0.06 }}
-                  >
-                    <span className="interest-dot" aria-hidden="true" />
-                    <div>
-                      <h4>{interest.title}</h4>
-                      <p>{interest.text}</p>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </motion.div>
-          </div>
-          <motion.div
-            className="extras-cta"
-            initial={reduced ? false : { opacity: 0, y: 20 }}
-            whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.4 }}
-            transition={{ duration: 0.45 }}
-          >
-            <p>Got something interesting in mind?</p>
-            <button className="btn-link" type="button" onClick={() => openPanel('contact')}>
-              Let&apos;s talk ↗
-            </button>
-          </motion.div>
-      </ZoomSection>
+        <StackedSection
+          id="skills"
+          kicker="tools in the backpack"
+          title="Skills &"
+          accent="tools"
+          accentClass="accent-mint"
+          lede="A working toolkit, not a trophy shelf. These are the things I reach for most often."
+          cards={skillCards}
+          reduced={reduced}
+        />
       </div>
 
       <footer className="site-footer">
