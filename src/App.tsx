@@ -111,38 +111,52 @@ const journeyCards: StackCardData[] = [
     title: 'Data Science',
     subtitle: 'Kathmandu University',
     color: 'var(--coral)',
-    note: 'Learning in public, building small experiments, and following the interesting questions.',
+    note: 'Coursework and independent projects in data science, statistics, and machine learning.',
   },
   {
     eyebrow: 'June — ongoing · Experience',
     title: 'AI Developer',
     subtitle: 'Lucent AI Nepal',
     color: 'var(--blue)',
-    note: 'Turning messy problems into working tools, one iteration at a time.',
+    note: 'Developing AI-driven tools and iterating on solutions to practical problems.',
   },
 ]
 
 const skillCards: StackCardData[] = [
   {
-    eyebrow: 'Languages & data',
-    title: 'Python-first',
-    subtitle: 'The things I reach for every day.',
+    eyebrow: 'Languages',
+    title: 'Programming Languages',
+    subtitle: 'Core languages used for development and analysis.',
     color: 'var(--mint)',
-    items: ['Python', 'R', 'Pandas', 'NumPy', 'Matplotlib'],
+    items: ['Python', 'R', 'Java'],
   },
   {
-    eyebrow: 'Models & agents',
-    title: 'Build the smart bit',
-    subtitle: 'From classic ML to small, curious agents.',
+    eyebrow: 'Data & analytics',
+    title: 'Data & Analytics',
+    subtitle: 'Data manipulation, analysis, and visualisation.',
+    color: 'var(--blue)',
+    items: ['NumPy', 'Pandas', 'Matplotlib', 'Seaborn', 'Data Visualisation', 'DBMS'],
+  },
+  {
+    eyebrow: 'ML & AI frameworks',
+    title: 'Machine Learning & AI',
+    subtitle: 'Model development across classical and deep learning.',
     color: 'var(--lilac)',
-    items: ['scikit-learn', 'TensorFlow', 'Keras', 'Hugging Face', 'Google ADK'],
+    items: ['TensorFlow', 'scikit-learn', 'Keras', 'Hugging Face Transformers', 'Weka', 'Orange'],
   },
   {
-    eyebrow: 'Tools & platforms',
-    title: 'Make it real',
-    subtitle: 'Getting an idea out of the notebook.',
+    eyebrow: 'LLMs & agents',
+    title: 'LLMs & Agent Development',
+    subtitle: 'Working with language models and agent frameworks.',
+    color: 'var(--coral)',
+    items: ['Google ADK', 'LangChain', 'LangGraph', 'Google Colab'],
+  },
+  {
+    eyebrow: 'Web, APIs & platforms',
+    title: 'Web, APIs & Platforms',
+    subtitle: 'API integration, development tooling, and environments.',
     color: 'var(--yellow)',
-    items: ['FastAPI', 'Flask', 'Git & GitHub', 'Jupyter', 'VS Code'],
+    items: ['REST APIs', 'Flask', 'FastAPI', 'Git & GitHub', 'VS Code', 'Jupyter', 'Linux CLI'],
   },
 ]
 
@@ -168,9 +182,13 @@ type PlayBody = {
 const playBodies = new Set<PlayBody>()
 
 let homeFrame = 0
+let physicsFrame = 0
+let physicsLast = 0
+let physicsPaused = false
 
 function resetPlayBodies(reduced: boolean) {
   cancelAnimationFrame(homeFrame)
+  stopPhysics()
 
   const returns: {
     body: PlayBody
@@ -250,84 +268,106 @@ function resetPlayBodies(reduced: boolean) {
   homeFrame = requestAnimationFrame(step)
 }
 
-function usePlaygroundPhysics(reduced: boolean) {
-  useEffect(() => {
-    if (reduced) return
-    let frame = 0
-    let last = performance.now()
+function startPhysics() {
+  if (physicsPaused || physicsFrame) return
+  physicsLast = performance.now()
+  physicsFrame = requestAnimationFrame(runPhysics)
+}
 
-    const step = (now: number) => {
-      const dt = Math.min((now - last) / 16.67, 2)
-      last = now
-      const width = window.innerWidth
-      const height = window.innerHeight
+function stopPhysics() {
+  if (!physicsFrame) return
+  cancelAnimationFrame(physicsFrame)
+  physicsFrame = 0
+}
 
-      playBodies.forEach((body) => {
-        if (!body.active || body.dragging || !body.el) return
-        body.vy += 0.6 * dt
-        body.vx *= Math.pow(0.995, dt)
-        body.vy *= Math.pow(0.995, dt)
-        body.x += body.vx * dt
-        body.y += body.vy * dt
-        body.angle += body.spin * dt
-        body.spin *= Math.pow(0.99, dt)
+function runPhysics(now: number) {
+  const dt = Math.min((now - physicsLast) / 16.67, 2)
+  physicsLast = now
+  const width = window.innerWidth
+  const height = window.innerHeight
+  let awake = false
 
-        if (body.x - body.radius < 0) {
-          body.x = body.radius
-          body.vx = Math.abs(body.vx) * 0.62
-        } else if (body.x + body.radius > width) {
-          body.x = width - body.radius
-          body.vx = -Math.abs(body.vx) * 0.62
-        }
-        if (body.y - body.radius < 0) {
-          body.y = body.radius
-          body.vy = Math.abs(body.vy) * 0.62
-        } else if (body.y + body.radius > height) {
-          body.y = height - body.radius
-          body.vy = -Math.abs(body.vy) * 0.62
-          body.vx *= 0.98
-        }
-      })
+  playBodies.forEach((body) => {
+    if (!body.active || !body.el) return
+    if (body.dragging) {
+      awake = true
+      return
+    }
+    body.vy += 0.6 * dt
+    body.vx *= Math.pow(0.995, dt)
+    body.vy *= Math.pow(0.995, dt)
+    body.x += body.vx * dt
+    body.y += body.vy * dt
+    body.angle += body.spin * dt
+    body.spin *= Math.pow(0.99, dt)
 
-      const active = Array.from(playBodies).filter((body) => body.active && body.el)
-      for (let i = 0; i < active.length; i++) {
-        for (let j = i + 1; j < active.length; j++) {
-          const a = active[i]
-          const b = active[j]
-          const dx = b.x - a.x
-          const dy = b.y - a.y
-          const distance = Math.hypot(dx, dy)
-          const minimum = a.radius + b.radius
-          if (distance === 0 || distance >= minimum) continue
-          const nx = dx / distance
-          const ny = dy / distance
-          const overlap = (minimum - distance) / 2
-          a.x -= nx * overlap
-          a.y -= ny * overlap
-          b.x += nx * overlap
-          b.y += ny * overlap
-          const normalVelocity = (b.vx - a.vx) * nx + (b.vy - a.vy) * ny
-          if (normalVelocity >= 0) continue
-          const impulse = -(1 + 0.55) * normalVelocity / 2
-          a.vx -= impulse * nx
-          a.vy -= impulse * ny
-          b.vx += impulse * nx
-          b.vy += impulse * ny
-          a.spin -= impulse * 0.004
-          b.spin += impulse * 0.004
-        }
-      }
-
-      playBodies.forEach((body) => {
-        if (!body.el) return
-        body.el.style.transform = `translate3d(${(body.x - body.baseX).toFixed(2)}px, ${(body.y - body.baseY).toFixed(2)}px, 0) rotate(${body.angle.toFixed(3)}rad)`
-      })
-
-      frame = requestAnimationFrame(step)
+    if (body.x - body.radius < 0) {
+      body.x = body.radius
+      body.vx = Math.abs(body.vx) * 0.62
+    } else if (body.x + body.radius > width) {
+      body.x = width - body.radius
+      body.vx = -Math.abs(body.vx) * 0.62
+    }
+    if (body.y - body.radius < 0) {
+      body.y = body.radius
+      body.vy = Math.abs(body.vy) * 0.62
+    } else if (body.y + body.radius > height) {
+      body.y = height - body.radius
+      body.vy = Math.abs(body.vy) < 0.9 ? 0 : -Math.abs(body.vy) * 0.62
+      body.vx *= 0.9
+      body.spin *= 0.85
     }
 
-    frame = requestAnimationFrame(step)
-    return () => cancelAnimationFrame(frame)
+    if (Math.abs(body.vx) > 0.08 || Math.abs(body.vy) > 0.08 || Math.abs(body.spin) > 0.02) {
+      awake = true
+    }
+  })
+
+  const active = Array.from(playBodies).filter((body) => body.active && body.el)
+  for (let i = 0; i < active.length; i++) {
+    for (let j = i + 1; j < active.length; j++) {
+      const a = active[i]
+      const b = active[j]
+      const dx = b.x - a.x
+      const dy = b.y - a.y
+      const distance = Math.hypot(dx, dy)
+      const minimum = a.radius + b.radius
+      if (distance === 0 || distance >= minimum) continue
+      const nx = dx / distance
+      const ny = dy / distance
+      const overlap = (minimum - distance) / 2
+      a.x -= nx * overlap
+      a.y -= ny * overlap
+      b.x += nx * overlap
+      b.y += ny * overlap
+      const normalVelocity = (b.vx - a.vx) * nx + (b.vy - a.vy) * ny
+      if (normalVelocity >= 0) continue
+      const impulse = -(1 + 0.55) * normalVelocity / 2
+      a.vx -= impulse * nx
+      a.vy -= impulse * ny
+      b.vx += impulse * nx
+      b.vy += impulse * ny
+      a.spin -= impulse * 0.004
+      b.spin += impulse * 0.004
+    }
+  }
+
+  playBodies.forEach((body) => {
+    if (!body.el) return
+    body.el.style.transform = `translate3d(${(body.x - body.baseX).toFixed(2)}px, ${(body.y - body.baseY).toFixed(2)}px, 0) rotate(${body.angle.toFixed(3)}rad)`
+  })
+
+  physicsFrame = awake ? requestAnimationFrame(runPhysics) : 0
+}
+
+function usePlaygroundPhysics(reduced: boolean) {
+  useEffect(() => {
+    physicsPaused = reduced
+    if (reduced) stopPhysics()
+    return () => {
+      physicsPaused = false
+      stopPhysics()
+    }
   }, [reduced])
 }
 
@@ -381,6 +421,7 @@ function PlayfulLetter({ char, index, reduced }: { char: string; index: number; 
     if (reduced) return
     event.preventDefault()
     cancelAnimationFrame(homeFrame)
+    startPhysics()
     const body = bodyRef.current
     body.active = true
     body.dragging = true
@@ -527,6 +568,7 @@ function SlidePanel({
   children: React.ReactNode
 }) {
   const closeRef = useRef<HTMLButtonElement>(null)
+  const panelRef = useRef<HTMLElement>(null)
 
   useEffect(() => {
     if (!open) return
@@ -534,6 +576,23 @@ function SlidePanel({
     closeRef.current?.focus()
     return () => previousFocus?.focus()
   }, [open])
+
+  const trapFocus = (event: React.KeyboardEvent<HTMLElement>) => {
+    if (event.key !== 'Tab') return
+    const focusable = panelRef.current?.querySelectorAll<HTMLElement>(
+      'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+    )
+    if (!focusable || focusable.length === 0) return
+    const first = focusable[0]
+    const last = focusable[focusable.length - 1]
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault()
+      last.focus()
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault()
+      first.focus()
+    }
+  }
 
   return (
     <AnimatePresence>
@@ -549,10 +608,13 @@ function SlidePanel({
             aria-hidden="true"
           />
           <motion.aside
+            ref={panelRef}
+            id={`panel-${panel}`}
             className={`slide-panel slide-panel--${panel}`}
             role="dialog"
             aria-modal="true"
             aria-label={panel === 'about' ? 'About Sadhana' : 'Contact Sadhana'}
+            onKeyDown={trapFocus}
             initial={
               reduced
                 ? { opacity: 0 }
@@ -732,6 +794,9 @@ export default function App() {
 
   return (
     <div className={`app${reduced ? ' reduce-motion' : ''}${activePanel ? ' panel-open' : ''}`}>
+      <a className="skip-link" href="#explore">
+        Skip to content
+      </a>
       <nav className="site-nav" aria-label="Main navigation">
         <div className="nav-links">
           <motion.button
@@ -739,6 +804,8 @@ export default function App() {
             type="button"
             onClick={() => openPanel('about')}
             aria-expanded={activePanel === 'about'}
+            aria-haspopup="dialog"
+            aria-controls={activePanel === 'about' ? 'panel-about' : undefined}
             whileHover={reduced ? undefined : { y: -2 }}
             whileTap={{ scale: 0.96 }}
           >
@@ -749,6 +816,8 @@ export default function App() {
             type="button"
             onClick={() => openPanel('contact')}
             aria-expanded={activePanel === 'contact'}
+            aria-haspopup="dialog"
+            aria-controls={activePanel === 'contact' ? 'panel-contact' : undefined}
             whileHover={reduced ? undefined : { y: -2 }}
             whileTap={{ scale: 0.96 }}
           >
@@ -822,6 +891,15 @@ export default function App() {
             />
           </svg>
 
+          <motion.p
+            className="hero-tagline"
+            initial={reduced ? false : { opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: reduced ? 0.01 : 0.6, delay: reduced ? 0 : 0.95, ease: panelEase }}
+          >
+            Data science student exploring mathematics, AI &amp; playful experiments.
+          </motion.p>
+
           <motion.button
             className="hero-reset"
             type="button"
@@ -836,12 +914,12 @@ export default function App() {
         </main>
 
         <button className="scroll-hint" type="button" onClick={scrollToExplore}>
-          scroll for the good stuff ↓
+          scroll to explore ↓
         </button>
       </section>
 
       <SlidePanel panel="about" open={activePanel === 'about'} reduced={reduced} onClose={closePanel}>
-        <p className="panel-kicker">a little context</p>
+        <p className="panel-kicker">background</p>
         <h2 className="panel-title">
           About <span className="accent-coral">me</span>
         </h2>
@@ -861,17 +939,17 @@ export default function App() {
         </dl>
         <p className="panel-note">{bio}</p>
         <button className="panel-next" type="button" onClick={scrollToExplore}>
-          explore the rest <span aria-hidden="true">↓</span>
+          view more <span aria-hidden="true">↓</span>
         </button>
       </SlidePanel>
 
       <SlidePanel panel="contact" open={activePanel === 'contact'} reduced={reduced} onClose={closePanel}>
-        <p className="panel-kicker">say hi</p>
+        <p className="panel-kicker">contact</p>
         <h2 className="panel-title">
           Let&apos;s <span className="accent-lilac">talk</span>
         </h2>
         <p className="panel-intro">
-          Got a question, a collab idea, or just something cool to share? My inbox is always open.
+          For questions, collaboration, or general enquiries, feel free to reach out.
         </p>
         <div className="contact-list">
           {contactLinks.map((link) => (
@@ -888,37 +966,37 @@ export default function App() {
           ))}
         </div>
         <p className="panel-note">
-          I&apos;m especially happy to chat about data, AI, creative experiments, or whatever you&apos;re building.
+          I&apos;m open to discussing data, AI, and opportunities to collaborate.
         </p>
       </SlidePanel>
 
       <div className="explore" id="explore">
         <StackedSection
           id="journey"
-          kicker="the path so far"
-          title="A little"
-          accent="journey"
+          kicker="experience & education"
+          title="Career &"
+          accent="education"
           accentClass="accent-coral"
-          lede="Two chapters so far, still very much in progress."
+          lede="An overview of my academic background and professional experience."
           cards={journeyCards}
           reduced={reduced}
         />
 
         <StackedSection
           id="skills"
-          kicker="tools in the backpack"
+          kicker="technical skills"
           title="Skills &"
-          accent="tools"
+          accent="expertise"
           accentClass="accent-mint"
-          lede="A working toolkit, not a trophy shelf. These are the things I reach for most often."
+          lede="Technical skills developed through academic study and professional work."
           cards={skillCards}
           reduced={reduced}
         />
       </div>
 
       <footer className="site-footer">
-        <button type="button" onClick={() => openPanel('contact')}>say hi ↗</button>
-        <span>made with curiosity, chaos, and a lot of data · Sadhana</span>
+        <button type="button" onClick={() => openPanel('contact')}>get in touch ↗</button>
+        <span>© 2026 Sadhana Uprety · Data Science &amp; AI</span>
       </footer>
     </div>
   )
